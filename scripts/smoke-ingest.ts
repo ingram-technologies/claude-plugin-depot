@@ -9,6 +9,7 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 
 import { count } from "drizzle-orm";
+import type { PgTable } from "drizzle-orm/pg-core";
 
 import { db, pool, schema } from "../src/lib/db";
 import { ingestUpload } from "../src/lib/ingest";
@@ -59,7 +60,7 @@ function fileToPayloadFile(path: string) {
 	};
 }
 
-async function tableCount(table: Parameters<typeof db.select>[0] extends never ? never : any) {
+async function tableCount(table: PgTable) {
 	const [row] = await db.select({ n: count() }).from(table);
 	return row?.n ?? 0;
 }
