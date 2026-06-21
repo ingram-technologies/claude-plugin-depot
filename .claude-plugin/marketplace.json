@@ -1,0 +1,15 @@
+{
+	"name": "depot",
+	"description": "Depot — institutional memory from Claude Code transcripts",
+	"owner": {
+		"name": "Ingram Tech"
+	},
+	"plugins": [
+		{
+			"name": "depot",
+			"description": "Uploads new Claude Code transcript records to your team's Depot server after each session.",
+			"version": "1.0.0",
+			"source": "./"
+		}
+	]
+}
