@@ -1,0 +1,19 @@
+{
+	"name": "depot-pulumi",
+	"private": true,
+	"description": "Pulumi program for Depot's Ingram Cloud analyzer agents.",
+	"scripts": {
+		"preview": "pulumi preview",
+		"up": "pulumi up",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@ingram-tech/pulumi-ingram-cloud": "^0.6.1",
+		"@pulumi/pulumi": "^3.0.0"
+	},
+	"devDependencies": {
+		"@types/node": "^22.0.0",
+		"tsconfig-paths": "^4.2.0",
+		"typescript": "^5.0.0"
+	}
+}

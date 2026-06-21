@@ -1,0 +1,16 @@
+{
+	"extends": "@ingram-tech/nk-dev/tsconfig/nextjs.json",
+	"compilerOptions": {
+		"paths": {
+			"@/*": ["./src/*"]
+		},
+		"plugins": [{ "name": "next" }]
+	},
+	"include": [
+		"next-env.d.ts",
+		"**/*.ts",
+		"**/*.tsx",
+		".next/types/**/*.ts"
+	],
+	"exclude": ["node_modules", "plugin", "pulumi"]
+}
