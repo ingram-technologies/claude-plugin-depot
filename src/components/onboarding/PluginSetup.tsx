@@ -1,5 +1,10 @@
 import { CodeBlock } from "@/components/CodeBlock";
 
+// The plugin's built-in default DEPOT_URL. When this instance is served from
+// that same origin, the DEPOT_URL export is redundant — so we omit it and only
+// surface it for non-prod instances (a dev/staging Depot on another host).
+const DEFAULT_DEPOT_URL = "https://depot.ingram.tech";
+
 /**
  * Plugin-setup instructions. Pure presentational (server-renderable): the
  * install commands, the env export (with the token if one was just minted), and
@@ -14,10 +19,15 @@ export function PluginSetup({
 }) {
 	const tokenValue = token ?? "dpt_…";
 
-	const install = `/plugin marketplace add ingram-technologies/depot.ingram.tech
+	const install = `/plugin marketplace add ingram-technologies/claude-plugin-depot
 /plugin install depot@depot`;
 
-	const env = `export DEPOT_TOKEN="${tokenValue}"
+	// DEPOT_URL only matters off the default origin; on prod it's the built-in
+	// default, so we don't clutter the snippet with it.
+	const isDefaultUrl = depotUrl === DEFAULT_DEPOT_URL;
+	const env = isDefaultUrl
+		? `export DEPOT_TOKEN="${tokenValue}"`
+		: `export DEPOT_TOKEN="${tokenValue}"
 export DEPOT_URL="${depotUrl}"`;
 
 	return (
