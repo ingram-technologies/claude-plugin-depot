@@ -42,8 +42,7 @@ type Proj = {
 	mems: Mem[];
 };
 
-const ago = (days: number) =>
-	new Date(Date.now() - days * 86_400_000).toISOString();
+const ago = (days: number) => new Date(Date.now() - days * 86_400_000).toISOString();
 
 const PROJECTS: Proj[] = [
 	{
@@ -73,8 +72,7 @@ from Resend to the in-house **Cloudflare Email Service** — see the decision be
 				type: "decision",
 				slug: "cloudflare-email-service",
 				title: "Adopt Cloudflare Email Service",
-				claim:
-					"Transactional email moves from Resend to the in-house Cloudflare Email Service.",
+				claim: "Transactional email moves from Resend to the in-house Cloudflare Email Service.",
 				body: "Resend's per-domain limits and opaque deliverability pushed us to own the path. The Cloudflare worker fronts MailChannels and is reachable as @ingram-tech/email; no other mail client is permitted.",
 				scope: "@ingram-tech/email",
 				confidence: 0.86,
@@ -100,8 +98,7 @@ from Resend to the in-house **Cloudflare Email Service** — see the decision be
 				type: "gotcha",
 				slug: "pulumi-secret-leak",
 				title: "Pulumi secrets leak via string interpolation",
-				claim:
-					"Interpolating a Pulumi secret output into a plain string leaks it into state diffs.",
+				claim: "Interpolating a Pulumi secret output into a plain string leaks it into state diffs.",
 				body: "Use pulumi.secret() and pass Output<string> through resource args directly. The moment you `${secret}` into a template literal, the resolved value lands in plaintext in the diff.",
 				scope: "pulumi/",
 				confidence: 0.72,
@@ -121,8 +118,7 @@ from Resend to the in-house **Cloudflare Email Service** — see the decision be
 				type: "principle",
 				slug: "remote-is-identity",
 				title: "Git remote is project identity",
-				claim:
-					"A project is identified by its normalized git remote, never by an absolute path.",
+				claim: "A project is identified by its normalized git remote, never by an absolute path.",
 				body: "Worktrees and monorepo subdirs mean many paths map to one project. The normalized remote is the only stable key; abs paths are per-machine reality stored separately.",
 				scope: "src/lib/ingest/project.ts",
 				confidence: 0.91,
@@ -142,8 +138,7 @@ from Resend to the in-house **Cloudflare Email Service** — see the decision be
 				type: "state",
 				slug: "stale-terraform-import",
 				title: "Legacy Terraform import is stale",
-				claim:
-					"The half-finished Terraform-to-Pulumi import for the DO droplets is abandoned.",
+				claim: "The half-finished Terraform-to-Pulumi import for the DO droplets is abandoned.",
 				body: "We chose to recreate rather than import. This note is kept so nobody resurrects the import branch.",
 				scope: "pulumi/legacy",
 				confidence: 0.3,
@@ -165,7 +160,8 @@ from Resend to the in-house **Cloudflare Email Service** — see the decision be
 		slug: "depot",
 		name: "depot",
 		remote: "github.com/ingram-technologies/depot.ingram.tech",
-		description: "Distills Claude Code transcripts into cited per-project Memories.",
+		description:
+			"Distills Claude Code transcripts into cited per-project Memories.",
 		stateOfMind:
 			"The transcripts → trusted, cited Memories core is nailed; the web UI is the current front.",
 		brief: `## Current state
@@ -188,8 +184,7 @@ active front.
 				type: "principle",
 				slug: "no-fuzzy-unique-keys",
 				title: "No fuzzy process owns a unique key",
-				claim:
-					"A nondeterministic/LLM process never owns a unique key in the schema.",
+				claim: "A nondeterministic/LLM process never owns a unique key in the schema.",
 				body: "Project identity = git remote; claim identity = deterministic fingerprint; record identity = the producer's own uuid. This makes re-runs idempotent and merges reversible without re-invoking the model.",
 				scope: "src/lib/schema.ts",
 				confidence: 0.94,
@@ -215,8 +210,7 @@ active front.
 				type: "decision",
 				slug: "precision-over-recall",
 				title: "Extractor optimizes precision over recall",
-				claim:
-					"The extractor favors a sparse trustworthy memory over a dense doubted one.",
+				claim: "The extractor favors a sparse trustworthy memory over a dense doubted one.",
 				body: "Suppression is the hard part. A Memory with no receipts cannot exist; we'd rather miss a lesson than surface an unfalsifiable one.",
 				scope: "src/lib/pipeline/extract.ts",
 				confidence: 0.8,
@@ -236,8 +230,7 @@ active front.
 				type: "gotcha",
 				slug: "confidence-is-derived",
 				title: "Confidence is derived, not authored",
-				claim:
-					"Confidence is a function of sessions/recency/contradiction — never written by the LLM.",
+				claim: "Confidence is a function of sessions/recency/contradiction — never written by the LLM.",
 				body: "If the model emits a confidence number, ignore it. Confidence is recomputed from evidence so it stays falsifiable and a human confirm can override it.",
 				scope: "src/lib/pipeline/confidence.ts",
 				confidence: 0.68,
@@ -364,10 +357,10 @@ async function seed() {
 	}
 
 	// supersession demo: infra's stale terraform note is superseded by the decision
-	await execute(
-		`update knowledge_entry set superseded_by_id = $1 where id = $2`,
-		["ke_demoInfra000000000001", "ke_demoInfra000000000004"],
-	);
+	await execute(`update knowledge_entry set superseded_by_id = $1 where id = $2`, [
+		"ke_demoInfra000000000001",
+		"ke_demoInfra000000000004",
+	]);
 
 	console.log(`seeded ${PROJECTS.length} demo projects`);
 }

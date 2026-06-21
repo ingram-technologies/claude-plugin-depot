@@ -13,6 +13,10 @@ export { canonicalizeProject } from "./canonicalize";
 export type { CanonicalizeStats } from "./canonicalize";
 export { generateBriefing } from "./brief";
 export type { BriefStats } from "./brief";
-export { runProjectPipeline, runAllStaleProjects, staleSessionsForProject } from "./run";
+export {
+	runProjectPipeline,
+	runAllStaleProjects,
+	staleSessionsForProject,
+} from "./run";
 export type { ProjectPipelineResult } from "./run";
 export * as schemas from "./schemas";

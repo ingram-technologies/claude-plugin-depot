@@ -8,13 +8,7 @@ export {
 	listProjects,
 	projectActivity,
 } from "./projects";
-export {
-	feed,
-	getEntry,
-	listEntries,
-	recentlyLearned,
-	searchEntries,
-} from "./entries";
+export { feed, getEntry, listEntries, recentlyLearned, searchEntries } from "./entries";
 export { latestBriefing } from "./briefings";
 export {
 	daysSince,

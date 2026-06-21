@@ -42,18 +42,9 @@ export function PulseBand({
 			</div>
 
 			<div className="flex min-w-[200px] flex-col gap-3">
-				<Vital
-					label="last learned"
-					value={shortAgo(project.lastLearnedAt)}
-				/>
-				<Vital
-					label="memories"
-					value={String(project.entryCount)}
-				/>
-				<Vital
-					label="sessions"
-					value={String(project.sessionCount)}
-				/>
+				<Vital label="last learned" value={shortAgo(project.lastLearnedAt)} />
+				<Vital label="memories" value={String(project.entryCount)} />
+				<Vital label="sessions" value={String(project.sessionCount)} />
 				<div>
 					<p className="mb-1 font-mono text-[10px] text-muted uppercase tracking-wider">
 						activity · 30d
@@ -76,20 +67,12 @@ function Vital({ label, value }: { label: string; value: string }) {
 			<span className="font-mono text-[10px] text-muted uppercase tracking-wider">
 				{label}
 			</span>
-			<span className="font-mono text-[13px] text-ink tabular-nums">
-				{value}
-			</span>
+			<span className="font-mono text-[13px] text-ink tabular-nums">{value}</span>
 		</div>
 	);
 }
 
-function HealthDot({
-	bucket,
-	n,
-}: {
-	bucket: "fresh" | "aging" | "stale";
-	n: number;
-}) {
+function HealthDot({ bucket, n }: { bucket: "fresh" | "aging" | "stale"; n: number }) {
 	return (
 		<span className="flex items-center gap-1.5">
 			<ConfidenceDot bucket={bucket} size={7} />

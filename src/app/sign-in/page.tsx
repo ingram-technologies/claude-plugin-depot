@@ -14,7 +14,8 @@ export default function SignInPage() {
 					</h1>
 				</div>
 				<p className="mb-6 font-serif text-[15px] text-muted italic">
-					A project&rsquo;s institutional memory — cited, durable, quietly alive.
+					A project&rsquo;s institutional memory — cited, durable, quietly
+					alive.
 				</p>
 				<Suspense fallback={null}>
 					<GoogleSignInButton />

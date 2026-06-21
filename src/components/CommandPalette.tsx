@@ -149,7 +149,9 @@ export function CommandPalette({ projects }: { projects: ProjectSummary[] }) {
 								className="flex w-full items-center justify-between px-4 py-2 text-left"
 								style={{
 									background:
-										i === active ? "var(--color-bg)" : "transparent",
+										i === active
+											? "var(--color-bg)"
+											: "transparent",
 								}}
 							>
 								<span className="font-sans text-[13px] text-ink">

@@ -8,7 +8,11 @@ export default async function TeamPage() {
 	if (!team) {
 		return (
 			<div className="mx-auto max-w-3xl px-6 py-8">
-				<PageHeader eyebrow="settings · team" title="Team" blurb="No organization yet." />
+				<PageHeader
+					eyebrow="settings · team"
+					title="Team"
+					blurb="No organization yet."
+				/>
 				<p className="mt-6 font-sans text-sm text-muted">
 					Create or join an organization first.{" "}
 					<a href="/onboarding" className="text-gold underline">

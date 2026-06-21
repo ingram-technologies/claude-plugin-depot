@@ -140,7 +140,8 @@ async function ensurePerson(user: Session["user"]): Promise<ViewerPerson> {
 async function resolveActiveOrg(session: Session): Promise<ActiveOrg | null> {
 	const h = await nextHeaders();
 	const orgs = await auth.api.listOrganizations({ headers: h });
-	const org = orgs.find((o) => o.id === session.session.activeOrganizationId) ?? orgs[0];
+	const org =
+		orgs.find((o) => o.id === session.session.activeOrganizationId) ?? orgs[0];
 	if (!org) {
 		return null;
 	}
@@ -149,7 +150,8 @@ async function resolveActiveOrg(session: Session): Promise<ActiveOrg | null> {
 		headers: h,
 		query: { organizationId: org.id },
 	});
-	const role = full?.members?.find((m) => m.userId === session.user.id)?.role ?? "member";
+	const role =
+		full?.members?.find((m) => m.userId === session.user.id)?.role ?? "member";
 
 	return { id: org.id, name: org.name, role };
 }
@@ -190,7 +192,8 @@ export async function ensureActiveOrg(): Promise<ActiveOrg | null> {
 	}
 
 	const orgs = await auth.api.listOrganizations({ headers: h });
-	const org = orgs.find((o) => o.id === session.session.activeOrganizationId) ?? orgs[0];
+	const org =
+		orgs.find((o) => o.id === session.session.activeOrganizationId) ?? orgs[0];
 	if (!org) {
 		return null;
 	}
@@ -206,7 +209,8 @@ export async function ensureActiveOrg(): Promise<ActiveOrg | null> {
 		headers: h,
 		query: { organizationId: org.id },
 	});
-	const role = full?.members?.find((m) => m.userId === session.user.id)?.role ?? "member";
+	const role =
+		full?.members?.find((m) => m.userId === session.user.id)?.role ?? "member";
 
 	return { id: org.id, name: org.name, role };
 }

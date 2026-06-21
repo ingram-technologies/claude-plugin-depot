@@ -56,7 +56,9 @@ export function CopyField({
 					type="button"
 					onClick={copy}
 					className="border-l border-hairline px-3 font-mono text-[11px] transition-colors"
-					style={{ color: copied ? "var(--color-fresh)" : "var(--color-gold)" }}
+					style={{
+						color: copied ? "var(--color-fresh)" : "var(--color-gold)",
+					}}
 				>
 					{copied ? "copied" : "copy"}
 				</button>

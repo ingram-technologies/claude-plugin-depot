@@ -28,25 +28,25 @@ const SUPPORT_DIVISOR = 3;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 export type ConfidenceInput = {
-  /** Number of DISTINCT sessions the entry's evidence spans. */
-  sessionCount: number;
-  /** Most recent evidence timestamp; null/undefined → treated as `now`. */
-  lastSeenAt?: Date | null;
-  /** Reference "now" (injectable for deterministic tests). */
-  now?: Date;
+	/** Number of DISTINCT sessions the entry's evidence spans. */
+	sessionCount: number;
+	/** Most recent evidence timestamp; null/undefined → treated as `now`. */
+	lastSeenAt?: Date | null;
+	/** Reference "now" (injectable for deterministic tests). */
+	now?: Date;
 };
 
 export function computeConfidence(input: ConfidenceInput): number {
-  const sessions = Math.max(0, input.sessionCount);
-  const support = Math.min(1, Math.log2(1 + sessions) / SUPPORT_DIVISOR);
+	const sessions = Math.max(0, input.sessionCount);
+	const support = Math.min(1, Math.log2(1 + sessions) / SUPPORT_DIVISOR);
 
-  const now = input.now ?? new Date();
-  const last = input.lastSeenAt ?? now;
-  const ageDays = Math.max(0, (now.getTime() - last.getTime()) / DAY_MS);
-  const recency = Math.pow(0.5, ageDays / HALF_LIFE_DAYS);
-  const recencyFactor = RECENCY_FLOOR + (1 - RECENCY_FLOOR) * recency;
+	const now = input.now ?? new Date();
+	const last = input.lastSeenAt ?? now;
+	const ageDays = Math.max(0, (now.getTime() - last.getTime()) / DAY_MS);
+	const recency = Math.pow(0.5, ageDays / HALF_LIFE_DAYS);
+	const recencyFactor = RECENCY_FLOOR + (1 - RECENCY_FLOOR) * recency;
 
-  const confidence = support * recencyFactor;
-  // Clamp defensively against fp drift.
-  return Math.max(0, Math.min(1, confidence));
+	const confidence = support * recencyFactor;
+	// Clamp defensively against fp drift.
+	return Math.max(0, Math.min(1, confidence));
 }

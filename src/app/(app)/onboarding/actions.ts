@@ -9,7 +9,9 @@ import { issueIngestToken } from "@/lib/ingest";
  * the client stores nothing, and a refresh can never re-reveal it.
  */
 
-type MintResult = { ok: true; token: string; id: string } | { ok: false; error: string };
+type MintResult =
+	| { ok: true; token: string; id: string }
+	| { ok: false; error: string };
 
 /**
  * Mint a personal ingest token bound to the viewer + their active org, so the

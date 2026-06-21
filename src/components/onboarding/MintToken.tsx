@@ -38,11 +38,12 @@ export function MintToken({ onMinted }: { onMinted?: (token: string) => void }) 
 					style={{
 						borderColor: "var(--color-stale)",
 						color: "var(--color-stale)",
-						background: "color-mix(in srgb, var(--color-stale) 8%, transparent)",
+						background:
+							"color-mix(in srgb, var(--color-stale) 8%, transparent)",
 					}}
 				>
-					Copy this now — it's shown only once. Depot stores only a hash; we can't show it again.
-					Lost it? Mint a new one in API tokens.
+					Copy this now — it's shown only once. Depot stores only a hash; we
+					can't show it again. Lost it? Mint a new one in API tokens.
 				</div>
 			</div>
 		);
@@ -51,8 +52,8 @@ export function MintToken({ onMinted }: { onMinted?: (token: string) => void }) 
 	return (
 		<div className="flex flex-col gap-3">
 			<p className="font-serif text-[15px] leading-relaxed text-ink/90">
-				Mint a personal ingest token. It attributes everything you sync to you, inside this
-				organization.
+				Mint a personal ingest token. It attributes everything you sync to you,
+				inside this organization.
 			</p>
 			<div>
 				<button

@@ -5,19 +5,19 @@
 
 /** Last non-empty path segment of a canonical remote or abs path. */
 export function basenameOf(input: string): string {
-  const cleaned = input.replace(/\.git$/i, "").replace(/[/\\]+$/, "");
-  const parts = cleaned.split(/[/\\]/).filter((p) => p.length > 0);
-  return parts.at(-1) ?? cleaned;
+	const cleaned = input.replace(/\.git$/i, "").replace(/[/\\]+$/, "");
+	const parts = cleaned.split(/[/\\]/).filter((p) => p.length > 0);
+	return parts.at(-1) ?? cleaned;
 }
 
 /** Derive a url-safe slug stem from a name. Never empty. */
 export function slugify(name: string): string {
-  const slug = name
-    .toLowerCase()
-    .normalize("NFKD")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-  return slug.length > 0 ? slug : "project";
+	const slug = name
+		.toLowerCase()
+		.normalize("NFKD")
+		.replace(/[^a-z0-9]+/g, "-")
+		.replace(/^-+|-+$/g, "");
+	return slug.length > 0 ? slug : "project";
 }
 
 /**
@@ -25,7 +25,7 @@ export function slugify(name: string): string {
  * uploads from the same machine + path → idempotent project resolution.
  */
 export function localRemote(machineKey: string, projectPathAbs: string): string {
-  return `local:${machineKey}:${projectPathAbs}`;
+	return `local:${machineKey}:${projectPathAbs}`;
 }
 
 /**
@@ -34,12 +34,12 @@ export function localRemote(machineKey: string, projectPathAbs: string): string 
  * final arbiter under concurrency.
  */
 export function nextFreeSlug(stem: string, taken: ReadonlySet<string>): string {
-  if (!taken.has(stem)) {
-    return stem;
-  }
-  let n = 2;
-  while (taken.has(`${stem}-${n}`)) {
-    n += 1;
-  }
-  return `${stem}-${n}`;
+	if (!taken.has(stem)) {
+		return stem;
+	}
+	let n = 2;
+	while (taken.has(`${stem}-${n}`)) {
+		n += 1;
+	}
+	return `${stem}-${n}`;
 }

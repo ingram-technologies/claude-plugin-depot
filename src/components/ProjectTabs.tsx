@@ -21,7 +21,10 @@ export function ProjectTabs({
 	return (
 		<div>
 			<div className="mb-4 flex gap-1 border-b border-hairline">
-				<TabButton active={tab === "memories"} onClick={() => setTab("memories")}>
+				<TabButton
+					active={tab === "memories"}
+					onClick={() => setTab("memories")}
+				>
 					Memories
 				</TabButton>
 				<TabButton active={tab === "brief"} onClick={() => setTab("brief")}>

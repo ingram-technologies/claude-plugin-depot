@@ -8,11 +8,5 @@
 	"homepage": "https://depot.ingram.tech",
 	"repository": "https://github.com/ingram-tech/depot.ingram.tech",
 	"license": "MIT",
-	"keywords": [
-		"depot",
-		"transcripts",
-		"memory",
-		"ingest",
-		"sync"
-	]
+	"keywords": ["depot", "transcripts", "memory", "ingest", "sync"]
 }

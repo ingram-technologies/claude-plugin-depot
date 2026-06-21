@@ -75,7 +75,9 @@ export function Sidebar({ viewerName }: { viewerName: string }) {
 							<span
 								className="font-sans text-[13px]"
 								style={{
-									color: active ? "var(--color-gold)" : "var(--color-ink)",
+									color: active
+										? "var(--color-gold)"
+										: "var(--color-ink)",
 								}}
 							>
 								{item.label}

@@ -1,9 +1,6 @@
 "use client";
 
-import {
-	inferAdditionalFields,
-	organizationClient,
-} from "better-auth/client/plugins";
+import { inferAdditionalFields, organizationClient } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
 
 import { authBasePath } from "@ingram-tech/nk-auth/paths";

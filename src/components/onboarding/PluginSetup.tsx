@@ -5,7 +5,13 @@ import { CodeBlock } from "@/components/CodeBlock";
  * install commands, the env export (with the token if one was just minted), and
  * the sync command. `token` is the freshly-minted raw value or a placeholder.
  */
-export function PluginSetup({ token, depotUrl }: { token: string | null; depotUrl: string }) {
+export function PluginSetup({
+	token,
+	depotUrl,
+}: {
+	token: string | null;
+	depotUrl: string;
+}) {
 	const tokenValue = token ?? "dpt_…";
 
 	const install = `/plugin marketplace add ingram-technologies/depot.ingram.tech
@@ -49,8 +55,9 @@ export DEPOT_URL="${depotUrl}"`;
 			</Step>
 
 			<p className="font-sans text-[13px] text-muted">
-				Your transcripts are distilled, per project, into this org's cited Memories. Nothing but the
-				transcript records and a machine fingerprint is sent — never tokens or secrets.
+				Your transcripts are distilled, per project, into this org's cited
+				Memories. Nothing but the transcript records and a machine fingerprint
+				is sent — never tokens or secrets.
 			</p>
 		</div>
 	);
@@ -71,7 +78,9 @@ function Step({
 		<div className="flex flex-col gap-2">
 			<div className="flex items-baseline gap-2">
 				<span className="font-mono text-[12px] text-gold">{n}.</span>
-				<span className="font-sans text-[14px] font-medium text-ink">{title}</span>
+				<span className="font-sans text-[14px] font-medium text-ink">
+					{title}
+				</span>
 			</div>
 			<p className="font-sans text-[12px] text-muted">{blurb}</p>
 			{children}

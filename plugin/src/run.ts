@@ -22,7 +22,10 @@ export type RunSummary = {
 	errors: string[];
 };
 
-export async function runOnce(config: Config, log: (msg: string) => void): Promise<RunSummary> {
+export async function runOnce(
+	config: Config,
+	log: (msg: string) => void,
+): Promise<RunSummary> {
 	const machine = resolveMachine(config.stateDir);
 	const account = resolveAccount(config.accountIdOverride);
 	const state: StateFile = loadState(config.stateDir);
@@ -88,7 +91,9 @@ export async function runOnce(config: Config, log: (msg: string) => void): Promi
 
 		if (!result.ok) {
 			summary.failedFiles += 1;
-			summary.errors.push(`${file.providerSessionId}: ${result.error ?? "failed"}`);
+			summary.errors.push(
+				`${file.providerSessionId}: ${result.error ?? "failed"}`,
+			);
 			if (config.flags.verbose) {
 				log(`✗ ${file.providerSessionId}: ${result.error ?? "failed"}`);
 			}
@@ -125,7 +130,9 @@ export function formatSummary(summary: RunSummary): string {
 		return (
 			`dry-run: ${summary.scannedFiles} file(s), ${summary.recordsSent} new ` +
 			`record(s) would be sent` +
-			(summary.skippedLines > 0 ? `, ${summary.skippedLines} malformed skipped` : "")
+			(summary.skippedLines > 0
+				? `, ${summary.skippedLines} malformed skipped`
+				: "")
 		);
 	}
 	const parts = [

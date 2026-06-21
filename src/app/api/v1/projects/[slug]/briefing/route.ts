@@ -1,12 +1,7 @@
 import { z } from "zod";
 
 import { authorizeBearer, unauthorized } from "@/lib/api/auth";
-import {
-	getEntry,
-	getProjectBySlug,
-	latestBriefing,
-	listEntries,
-} from "@/lib/queries";
+import { getEntry, getProjectBySlug, latestBriefing, listEntries } from "@/lib/queries";
 
 const paramsSchema = z.object({ slug: z.string().min(1).max(160) });
 
@@ -15,10 +10,7 @@ const paramsSchema = z.object({ slug: z.string().min(1).max(160) });
  * cited brief plus the top Memories WITH provenance (record uuids + quotes), so
  * a consuming agent can verify every claim against source.
  */
-export async function GET(
-	req: Request,
-	ctx: { params: Promise<{ slug: string }> },
-) {
+export async function GET(req: Request, ctx: { params: Promise<{ slug: string }> }) {
 	const auth = await authorizeBearer(req);
 	if (!auth) {
 		return unauthorized();

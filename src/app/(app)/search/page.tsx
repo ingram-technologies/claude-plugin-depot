@@ -35,7 +35,8 @@ export default async function SearchPage({
 
 			{q && (
 				<p className="mt-4 font-mono text-[11px] text-muted">
-					{results.length} {results.length === 1 ? "match" : "matches"} for “{q}”
+					{results.length} {results.length === 1 ? "match" : "matches"} for “
+					{q}”
 				</p>
 			)}
 

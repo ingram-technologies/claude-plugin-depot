@@ -16,7 +16,9 @@ import {
  * returned exactly once, immediately after minting.
  */
 
-type MintResult = { ok: true; token: string; id: string } | { ok: false; error: string };
+type MintResult =
+	| { ok: true; token: string; id: string }
+	| { ok: false; error: string };
 
 type RevokeResult = { ok: true } | { ok: false; error: string };
 

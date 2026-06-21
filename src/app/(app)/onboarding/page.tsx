@@ -7,7 +7,8 @@ import { OnboardingSection } from "@/components/onboarding/OnboardingSection";
 import { TokenAndSetup } from "@/components/onboarding/TokenAndSetup";
 import { requireViewer } from "@/lib/auth-helpers";
 
-const DEPOT_URL = process.env.BETTER_AUTH_URL?.replace(/\/$/, "") ?? "https://depot.ingram.tech";
+const DEPOT_URL =
+	process.env.BETTER_AUTH_URL?.replace(/\/$/, "") ?? "https://depot.ingram.tech";
 
 const searchSchema = z.object({
 	invitation: z.string().min(1).max(128).optional(),
@@ -30,7 +31,8 @@ export default async function OnboardingPage({
 	// user who already has an org — they may be joining a second one).
 	const showInvite = Boolean(invitation);
 	// Org-create: no org yet (and not mid-invite), or asked for via ?step=org.
-	const showOrgStep = !showInvite && (forcedStep === "org" || (!hasOrg && !forcedStep));
+	const showOrgStep =
+		!showInvite && (forcedStep === "org" || (!hasOrg && !forcedStep));
 	// Token + plugin: only once a tenant exists to bind the token to.
 	const showTokenSteps = !showInvite && !showOrgStep && hasOrg;
 
@@ -38,7 +40,11 @@ export default async function OnboardingPage({
 		<div className="mx-auto max-w-2xl px-6 py-10">
 			<PageHeader
 				eyebrow="onboarding"
-				title={hasOrg ? `Welcome, ${viewer.person.displayName}` : "Get set up on Depot"}
+				title={
+					hasOrg
+						? `Welcome, ${viewer.person.displayName}`
+						: "Get set up on Depot"
+				}
 				blurb="Connect Claude Code so your sessions become your team's cited, per-project Memories."
 			/>
 
@@ -58,7 +64,9 @@ export default async function OnboardingPage({
 				{showTokenSteps && <TokenAndSetup depotUrl={DEPOT_URL} />}
 
 				{!showInvite && !showOrgStep && !showTokenSteps && (
-					<p className="font-sans text-sm text-muted">Nothing to do here right now.</p>
+					<p className="font-sans text-sm text-muted">
+						Nothing to do here right now.
+					</p>
 				)}
 			</div>
 		</div>

@@ -105,18 +105,30 @@ export function TeamManager({
 							>
 								<div className="min-w-0 flex-1">
 									<div className="flex items-baseline gap-2">
-										<span className="truncate font-sans text-[14px] text-ink">{m.name}</span>
-										{isSelf && <span className="font-mono text-[10px] text-gold">you</span>}
+										<span className="truncate font-sans text-[14px] text-ink">
+											{m.name}
+										</span>
+										{isSelf && (
+											<span className="font-mono text-[10px] text-gold">
+												you
+											</span>
+										)}
 									</div>
-									<div className="truncate font-mono text-[11px] text-muted">{m.email}</div>
-									<div className="font-mono text-[10px] text-muted/70">{m.memberId}</div>
+									<div className="truncate font-mono text-[11px] text-muted">
+										{m.email}
+									</div>
+									<div className="font-mono text-[10px] text-muted/70">
+										{m.memberId}
+									</div>
 								</div>
 								{canManage && !isSelf ? (
 									<div className="flex shrink-0 items-center gap-2">
 										<select
 											value={m.role}
 											disabled={pending}
-											onChange={(e) => onRoleChange(m.memberId, e.target.value)}
+											onChange={(e) =>
+												onRoleChange(m.memberId, e.target.value)
+											}
 											className="rounded-[6px] border border-hairline bg-surface/40 px-2 py-1 font-sans text-[12px] text-ink focus:border-gold focus:outline-none"
 										>
 											{ROLES.map((r) => (
@@ -135,7 +147,9 @@ export function TeamManager({
 										</button>
 									</div>
 								) : (
-									<span className="shrink-0 font-mono text-[11px] text-muted">{m.role}</span>
+									<span className="shrink-0 font-mono text-[11px] text-muted">
+										{m.role}
+									</span>
 								)}
 							</li>
 						);
@@ -148,7 +162,10 @@ export function TeamManager({
 					<p className="mb-2 font-mono text-[11px] tracking-[0.14em] text-muted uppercase">
 						invite a teammate
 					</p>
-					<form onSubmit={submitInvite} className="flex flex-col gap-2 sm:flex-row">
+					<form
+						onSubmit={submitInvite}
+						className="flex flex-col gap-2 sm:flex-row"
+					>
 						<input
 							type="email"
 							required
@@ -195,8 +212,12 @@ export function TeamManager({
 								key={i.id}
 								className="flex items-center gap-3 border-b border-hairline px-4 py-2.5 last:border-b-0"
 							>
-								<span className="flex-1 truncate font-sans text-[13px] text-ink/90">{i.email}</span>
-								<span className="font-mono text-[11px] text-muted">{i.role}</span>
+								<span className="flex-1 truncate font-sans text-[13px] text-ink/90">
+									{i.email}
+								</span>
+								<span className="font-mono text-[11px] text-muted">
+									{i.role}
+								</span>
 								{canManage && (
 									<button
 										type="button"

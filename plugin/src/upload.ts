@@ -118,7 +118,9 @@ async function postWithRetry(
 		if (attempt < MAX_ATTEMPTS) {
 			const backoff = 500 * 2 ** (attempt - 1);
 			if (verbose) {
-				log(`  retry ${attempt}/${MAX_ATTEMPTS - 1} after ${backoff}ms: ${lastError}`);
+				log(
+					`  retry ${attempt}/${MAX_ATTEMPTS - 1} after ${backoff}ms: ${lastError}`,
+				);
 			}
 			await sleep(backoff);
 		}

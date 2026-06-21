@@ -12,9 +12,9 @@ describe("normalizeGitRemote", () => {
 		expect(normalizeGitRemote("https://github.com/Org/Repo.git")).toBe(
 			"github.com/Org/Repo",
 		);
-		expect(
-			normalizeGitRemote("https://user:token@github.com/org/repo.git"),
-		).toBe("github.com/org/repo");
+		expect(normalizeGitRemote("https://user:token@github.com/org/repo.git")).toBe(
+			"github.com/org/repo",
+		);
 	});
 
 	it("canonicalizes ssh:// remotes and drops the port", () => {

@@ -87,7 +87,9 @@ export function TokenManager({ tokens }: { tokens: TokenView[] }) {
 						{pending ? "…" : "Generate"}
 					</button>
 				</form>
-				{error && <p className="mt-2 font-mono text-[11px] text-stale">{error}</p>}
+				{error && (
+					<p className="mt-2 font-mono text-[11px] text-stale">{error}</p>
+				)}
 
 				{fresh && (
 					<div className="mt-3 flex flex-col gap-2">
@@ -97,7 +99,8 @@ export function TokenManager({ tokens }: { tokens: TokenView[] }) {
 							style={{
 								borderColor: "var(--color-stale)",
 								color: "var(--color-stale)",
-								background: "color-mix(in srgb, var(--color-stale) 8%, transparent)",
+								background:
+									"color-mix(in srgb, var(--color-stale) 8%, transparent)",
 							}}
 						>
 							Copy it now — shown only once. See{" "}
@@ -133,11 +136,18 @@ export function TokenManager({ tokens }: { tokens: TokenView[] }) {
 											<span className="truncate font-sans text-[14px] text-ink">
 												{t.label ?? "untitled"}
 											</span>
-											{revoked && <span className="font-mono text-[10px] text-stale">revoked</span>}
+											{revoked && (
+												<span className="font-mono text-[10px] text-stale">
+													revoked
+												</span>
+											)}
 										</div>
-										<div className="font-mono text-[10px] text-muted/70">{t.id}</div>
+										<div className="font-mono text-[10px] text-muted/70">
+											{t.id}
+										</div>
 										<div className="font-mono text-[10px] text-muted">
-											created {fmt(t.createdAt)} · last used {fmt(t.lastUsedAt)}
+											created {fmt(t.createdAt)} · last used{" "}
+											{fmt(t.lastUsedAt)}
 										</div>
 									</div>
 									{!revoked && (

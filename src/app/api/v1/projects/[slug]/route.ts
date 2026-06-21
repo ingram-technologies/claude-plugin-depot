@@ -1,19 +1,12 @@
 import { z } from "zod";
 
 import { authorizeBearer, unauthorized } from "@/lib/api/auth";
-import {
-	freshnessBucket,
-	getProjectBySlug,
-	listEntries,
-} from "@/lib/queries";
+import { freshnessBucket, getProjectBySlug, listEntries } from "@/lib/queries";
 
 const paramsSchema = z.object({ slug: z.string().min(1).max(160) });
 
 /** GET /api/v1/projects/{slug} — a project + its active Memories (claim-level). */
-export async function GET(
-	req: Request,
-	ctx: { params: Promise<{ slug: string }> },
-) {
+export async function GET(req: Request, ctx: { params: Promise<{ slug: string }> }) {
 	const auth = await authorizeBearer(req);
 	if (!auth) {
 		return unauthorized();

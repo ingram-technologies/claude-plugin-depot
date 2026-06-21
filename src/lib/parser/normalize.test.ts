@@ -109,7 +109,7 @@ describe("normalizeRecord", () => {
 
 	it("keeps the inline preview of a persisted-output marker", () => {
 		const preview =
-			"<persisted-output path=\"…/tool-results/x.txt\">first 2KB preview</persisted-output>";
+			'<persisted-output path="…/tool-results/x.txt">first 2KB preview</persisted-output>';
 		const r = normalizeRecord({
 			uuid: "u4",
 			type: "user",

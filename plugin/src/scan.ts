@@ -92,10 +92,7 @@ function listTranscripts(projectsDir: string): string[] {
 	return out;
 }
 
-function pickProjectPath(
-	records: unknown[],
-	encodedDir: string,
-): string {
+function pickProjectPath(records: unknown[], encodedDir: string): string {
 	for (const rec of records) {
 		if (typeof rec === "object" && rec !== null) {
 			const cwd = (rec as Record<string, unknown>).cwd;

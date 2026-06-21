@@ -68,17 +68,25 @@ export function OrgSwitcher({
 					<span className="block font-mono text-[9px] tracking-[0.14em] text-muted uppercase">
 						org
 					</span>
-					<span className="block truncate font-sans text-[13px] text-ink">{activeOrgName}</span>
+					<span className="block truncate font-sans text-[13px] text-ink">
+						{activeOrgName}
+					</span>
 				</span>
-				<span className="font-mono text-[10px] text-muted">{open ? "▴" : "▾"}</span>
+				<span className="font-mono text-[10px] text-muted">
+					{open ? "▴" : "▾"}
+				</span>
 			</button>
 
 			{open && (
 				<div className="absolute right-2 left-2 z-30 mt-1 overflow-hidden rounded-[6px] border border-hairline bg-surface shadow-lg">
 					{orgs === null ? (
-						<p className="px-3 py-2 font-mono text-[11px] text-muted">loading…</p>
+						<p className="px-3 py-2 font-mono text-[11px] text-muted">
+							loading…
+						</p>
 					) : orgs.length === 0 ? (
-						<p className="px-3 py-2 font-mono text-[11px] text-muted">no orgs</p>
+						<p className="px-3 py-2 font-mono text-[11px] text-muted">
+							no orgs
+						</p>
 					) : (
 						<ul className="py-1">
 							{orgs.map((o) => {
@@ -93,12 +101,18 @@ export function OrgSwitcher({
 											<span
 												className="truncate font-sans text-[13px]"
 												style={{
-													color: active ? "var(--color-gold)" : "var(--color-ink)",
+													color: active
+														? "var(--color-gold)"
+														: "var(--color-ink)",
 												}}
 											>
 												{o.name}
 											</span>
-											{active && <span className="font-mono text-[10px] text-gold">●</span>}
+											{active && (
+												<span className="font-mono text-[10px] text-gold">
+													●
+												</span>
+											)}
 										</button>
 									</li>
 								);

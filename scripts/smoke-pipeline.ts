@@ -35,9 +35,13 @@ async function main() {
 	for (const s of sessions) {
 		try {
 			const r = await extractSession(s.id);
-			console.log(`  ${s.providerSessionId.slice(0, 8)} (${s.recordCount} rec) → ${JSON.stringify(r)}`);
+			console.log(
+				`  ${s.providerSessionId.slice(0, 8)} (${s.recordCount} rec) → ${JSON.stringify(r)}`,
+			);
 		} catch (e) {
-			console.log(`  ${s.providerSessionId.slice(0, 8)} extract FAILED: ${String(e).slice(0, 200)}`);
+			console.log(
+				`  ${s.providerSessionId.slice(0, 8)} extract FAILED: ${String(e).slice(0, 200)}`,
+			);
 		}
 	}
 

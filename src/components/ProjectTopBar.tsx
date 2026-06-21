@@ -16,7 +16,9 @@ export function ProjectTopBar({ slug }: { slug: string }) {
 				/>
 			</nav>
 			<span className="font-mono text-[11px] text-muted">
-				<kbd className="rounded-[4px] border border-hairline px-1 py-0.5">⌘K</kbd>{" "}
+				<kbd className="rounded-[4px] border border-hairline px-1 py-0.5">
+					⌘K
+				</kbd>{" "}
 				to jump
 			</span>
 		</div>

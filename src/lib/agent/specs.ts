@@ -14,18 +14,18 @@
  */
 
 export type AgentSpec = {
-  slug: string;
-  name: string;
-  instructions: string;
-  model: string;
-  enabledHostedTools: string[];
-  autoMemory: boolean;
-  variables: {
-    name: string;
-    default?: string;
-    description?: string;
-    required?: boolean;
-  }[];
+	slug: string;
+	name: string;
+	instructions: string;
+	model: string;
+	enabledHostedTools: string[];
+	autoMemory: boolean;
+	variables: {
+		name: string;
+		default?: string;
+		description?: string;
+		required?: boolean;
+	}[];
 };
 
 /** Shared framing every analyzer agent gets, so the precision-over-recall and
@@ -44,17 +44,17 @@ Doctrine (non-negotiable):
   fences around the JSON.`;
 
 export const EXTRACTOR_AGENT: AgentSpec = {
-  slug: "depot-extractor",
-  name: "Depot Extractor",
-  // IC gates only by provider key and forwards the model id upstream unchanged;
-  // the upstream provider/gateway has no `gpt-5.5-mini` (the IC catalog entry is
-  // stale), so it 404s. `gpt-5.5` is verified working. This value only takes
-  // effect after `pulumi up` republishes the agent version (see pulumi/).
-  model: "gpt-5.5",
-  enabledHostedTools: [],
-  autoMemory: false,
-  variables: [],
-  instructions: `${PREAMBLE}
+	slug: "depot-extractor",
+	name: "Depot Extractor",
+	// IC gates only by provider key and forwards the model id upstream unchanged;
+	// the upstream provider/gateway has no `gpt-5.5-mini` (the IC catalog entry is
+	// stale), so it 404s. `gpt-5.5` is verified working. This value only takes
+	// effect after `pulumi up` republishes the agent version (see pulumi/).
+	model: "gpt-5.5",
+	enabledHostedTools: [],
+	autoMemory: false,
+	variables: [],
+	instructions: `${PREAMBLE}
 
 # Task: extract claims from ONE session transcript
 
@@ -91,13 +91,13 @@ common outcome. Prefer fewer, sharper claims over more, softer ones.`,
 };
 
 export const CANONICALIZER_AGENT: AgentSpec = {
-  slug: "depot-canonicalizer",
-  name: "Depot Canonicalizer",
-  model: "gpt-5.5",
-  enabledHostedTools: [],
-  autoMemory: false,
-  variables: [],
-  instructions: `${PREAMBLE}
+	slug: "depot-canonicalizer",
+	name: "Depot Canonicalizer",
+	model: "gpt-5.5",
+	enabledHostedTools: [],
+	autoMemory: false,
+	variables: [],
+	instructions: `${PREAMBLE}
 
 # Task: place ONE new claim relative to existing canonical entries
 
@@ -130,13 +130,13 @@ Rules:
 };
 
 export const BRIEFER_AGENT: AgentSpec = {
-  slug: "depot-briefer",
-  name: "Depot Briefer",
-  model: "gpt-5.5",
-  enabledHostedTools: [],
-  autoMemory: false,
-  variables: [],
-  instructions: `${PREAMBLE}
+	slug: "depot-briefer",
+	name: "Depot Briefer",
+	model: "gpt-5.5",
+	enabledHostedTools: [],
+	autoMemory: false,
+	variables: [],
+	instructions: `${PREAMBLE}
 
 # Task: write a per-project briefing
 
@@ -164,4 +164,8 @@ Then provide a separate one-sentence "state of mind": the single most important
 thing about where this project stands right now, in plain language.`,
 };
 
-export const ALL_AGENTS: AgentSpec[] = [EXTRACTOR_AGENT, CANONICALIZER_AGENT, BRIEFER_AGENT];
+export const ALL_AGENTS: AgentSpec[] = [
+	EXTRACTOR_AGENT,
+	CANONICALIZER_AGENT,
+	BRIEFER_AGENT,
+];

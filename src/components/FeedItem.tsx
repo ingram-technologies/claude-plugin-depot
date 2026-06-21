@@ -15,9 +15,7 @@ export function FeedItem({ entry }: { entry: EntrySummary }) {
 	const live = isLiveEdge(entry.updatedAt);
 
 	return (
-		<li
-			className={`group border-b border-hairline ${live ? "live-edge" : ""}`}
-		>
+		<li className={`group border-b border-hairline ${live ? "live-edge" : ""}`}>
 			<Link
 				href={`/m/${entry.id}`}
 				className="flex gap-3 px-4 py-3 transition-colors hover:bg-surface/60"

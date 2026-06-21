@@ -8,11 +8,7 @@
 import "server-only";
 
 import { maybeOne, query } from "@/lib/db";
-import type {
-	ActivityDay,
-	CorpusHealth,
-	ProjectSummary,
-} from "./types";
+import type { ActivityDay, CorpusHealth, ProjectSummary } from "./types";
 
 type ProjectRow = {
 	id: string;

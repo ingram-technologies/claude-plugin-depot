@@ -107,7 +107,9 @@ export function EvidenceBlock({
 							>
 								{ev.textContent ?? "(source record text unavailable)"}
 								{"\n\n"}
-								<span className="text-muted">record {ev.recordUuid}</span>
+								<span className="text-muted">
+									record {ev.recordUuid}
+								</span>
 							</pre>
 						)}
 					</div>

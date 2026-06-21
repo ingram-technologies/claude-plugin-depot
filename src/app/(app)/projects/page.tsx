@@ -48,7 +48,8 @@ export default async function ProjectsPage() {
 									</div>
 									<div className="shrink-0 text-right">
 										<p className="font-mono text-[11px] text-ink tabular-nums">
-											{p.entryCount} {p.entryCount === 1 ? "memory" : "memories"}
+											{p.entryCount}{" "}
+											{p.entryCount === 1 ? "memory" : "memories"}
 										</p>
 										<p className="font-mono text-[10px] text-muted">
 											learned {shortAgo(p.lastLearnedAt)}

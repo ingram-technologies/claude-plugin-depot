@@ -42,7 +42,9 @@ export default function ApiTokensPage() {
 							<code className="flex-1 font-mono text-[12px] text-ink">
 								{e.path}
 							</code>
-							<span className="font-sans text-[11px] text-muted">{e.note}</span>
+							<span className="font-sans text-[11px] text-muted">
+								{e.note}
+							</span>
 						</li>
 					))}
 				</ul>
@@ -64,8 +66,8 @@ export default function ApiTokensPage() {
 				</p>
 				<p className="mt-2 font-sans text-[13px] text-muted">
 					Read tokens reuse the ingest-token machinery (sha256-hashed, shown
-					once, revocable). A self-serve issue/revoke UI is the next step — for
-					now tokens are minted via{" "}
+					once, revocable). A self-serve issue/revoke UI is the next step —
+					for now tokens are minted via{" "}
 					<code className="font-mono text-gold">issueIngestToken()</code>.
 				</p>
 			</section>

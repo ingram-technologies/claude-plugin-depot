@@ -10,11 +10,7 @@ export const metadata: Metadata = {
 		"Depot distills Claude Code transcripts into durable, cited per-project Memories.",
 };
 
-export default function RootLayout({
-	children,
-}: {
-	children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
 	return (
 		<html
 			lang="en"

@@ -25,76 +25,81 @@
  */
 
 import { createIngramCloud } from "@ingram-tech/ai-sdk-adapter";
-import { generateObject, generateText, type ModelMessage, NoObjectGeneratedError } from "ai";
+import {
+	generateObject,
+	generateText,
+	type ModelMessage,
+	NoObjectGeneratedError,
+} from "ai";
 import type { z } from "zod";
 import type { AgentSpec } from "./specs";
 
 export type ProviderOptions = {
-  apiKey?: string;
-  baseURL?: string;
-  smithId?: string;
+	apiKey?: string;
+	baseURL?: string;
+	smithId?: string;
 };
 
 function requireEnv(name: string): string {
-  const v = process.env[name];
-  if (!v) throw new Error(`Missing required env var: ${name}`);
-  return v;
+	const v = process.env[name];
+	if (!v) throw new Error(`Missing required env var: ${name}`);
+	return v;
 }
 
 /** Build an IC provider from env (or explicit overrides). One per logical caller;
  *  provider creation is cheap. */
 export function getProvider(opts: ProviderOptions = {}) {
-  const apiKey = opts.apiKey ?? requireEnv("INGRAM_CLOUD_TOKEN");
-  const baseURL = opts.baseURL ?? process.env.INGRAM_CLOUD_BASE_URL ?? undefined;
-  return createIngramCloud({ apiKey, baseURL, smithId: opts.smithId });
+	const apiKey = opts.apiKey ?? requireEnv("INGRAM_CLOUD_TOKEN");
+	const baseURL = opts.baseURL ?? process.env.INGRAM_CLOUD_BASE_URL ?? undefined;
+	return createIngramCloud({ apiKey, baseURL, smithId: opts.smithId });
 }
 
 /** Resolve the optional per-task smith that runs a given agent, if provisioned. */
 function smithIdFor(agent: AgentSpec): string | undefined {
-  const key =
-    agent.slug === "depot-extractor"
-      ? "DEPOT_EXTRACTOR_SMITH_ID"
-      : agent.slug === "depot-canonicalizer"
-        ? "DEPOT_CANONICALIZER_SMITH_ID"
-        : "DEPOT_BRIEFER_SMITH_ID";
-  return process.env[key] || undefined;
+	const key =
+		agent.slug === "depot-extractor"
+			? "DEPOT_EXTRACTOR_SMITH_ID"
+			: agent.slug === "depot-canonicalizer"
+				? "DEPOT_CANONICALIZER_SMITH_ID"
+				: "DEPOT_BRIEFER_SMITH_ID";
+	return process.env[key] || undefined;
 }
 
 export type RunInput = {
-  agent: AgentSpec;
-  /** Extra system text appended after the agent's instructions. */
-  system?: string;
-  /** Single-turn prompt (mutually exclusive with `messages`). */
-  prompt?: string;
-  /** Full message list (mutually exclusive with `prompt`). */
-  messages?: ModelMessage[];
-  /** Optional provider overrides (mostly for tests). */
-  provider?: ProviderOptions;
+	agent: AgentSpec;
+	/** Extra system text appended after the agent's instructions. */
+	system?: string;
+	/** Single-turn prompt (mutually exclusive with `messages`). */
+	prompt?: string;
+	/** Full message list (mutually exclusive with `prompt`). */
+	messages?: ModelMessage[];
+	/** Optional provider overrides (mostly for tests). */
+	provider?: ProviderOptions;
 };
 
 const TRANSIENT = /\b(429|500|502|503|504|timeout|ETIMEDOUT|ECONNRESET|fetch)\b/i;
 
 function isTransient(e: unknown): boolean {
-  const msg = e instanceof Error ? e.message : String(e);
-  return TRANSIENT.test(msg);
+	const msg = e instanceof Error ? e.message : String(e);
+	return TRANSIENT.test(msg);
 }
 
 async function withRetry<T>(fn: () => Promise<T>): Promise<T> {
-  try {
-    return await fn();
-  } catch (e) {
-    if (!isTransient(e)) throw e;
-    // Single retry on transient failure, brief backoff.
-    await new Promise((r) => setTimeout(r, 750));
-    return await fn();
-  }
+	try {
+		return await fn();
+	} catch (e) {
+		if (!isTransient(e)) throw e;
+		// Single retry on transient failure, brief backoff.
+		await new Promise((r) => setTimeout(r, 750));
+		return await fn();
+	}
 }
 
 function systemFor(agent: AgentSpec, extra?: string): string {
-  // When a smith runs the agent, IC already carries the instructions; otherwise
-  // we send them inline. We always send them inline today (see TODO above) since
-  // smith-per-task is optional.
-  return extra ? `${agent.instructions}\n\n${extra}` : agent.instructions;
+	// When a smith runs the agent, IC already carries the instructions; otherwise
+	// we send them inline. We always send them inline today (see TODO above) since
+	// smith-per-task is optional.
+	return extra ? `${agent.instructions}\n\n${extra}` : agent.instructions;
 }
 
 /**
@@ -105,70 +110,72 @@ function systemFor(agent: AgentSpec, extra?: string): string {
  * `generateText` with a strict-JSON instruction and parses with the same schema.
  * Either way the result is validated by `schema` — we never `as`-cast model output.
  */
-export async function runStructured<T>(input: RunInput & { schema: z.ZodType<T> }): Promise<T> {
-  const { agent, schema, system, prompt, messages, provider: pOpts } = input;
-  const provider = getProvider({ ...pOpts, smithId: smithIdFor(agent) });
-  const model = provider(""); // "" → use the (smith's) agent model; tenant calls fall back to spec model server-side
-  const sys = systemFor(agent, system);
+export async function runStructured<T>(
+	input: RunInput & { schema: z.ZodType<T> },
+): Promise<T> {
+	const { agent, schema, system, prompt, messages, provider: pOpts } = input;
+	const provider = getProvider({ ...pOpts, smithId: smithIdFor(agent) });
+	const model = provider(""); // "" → use the (smith's) agent model; tenant calls fall back to spec model server-side
+	const sys = systemFor(agent, system);
 
-  return withRetry(async () => {
-    try {
-      const result = await generateObject({
-        model,
-        schema,
-        system: sys,
-        ...(messages ? { messages } : { prompt: prompt ?? "" }),
-      });
-      return result.object;
-    } catch (e) {
-      // Fall back to text + strict JSON if structured output isn't supported
-      // or the object didn't validate.
-      if (
-        !(e instanceof NoObjectGeneratedError) &&
-        !/response_format|json_schema|schema|object/i.test(
-          e instanceof Error ? e.message : String(e),
-        )
-      ) {
-        throw e;
-      }
-      const jsonSys = `${sys}\n\nReturn ONLY a single JSON object that conforms to the required shape. No prose, no markdown fences.`;
-      const text = await generateText({
-        model,
-        system: jsonSys,
-        ...(messages ? { messages } : { prompt: prompt ?? "" }),
-      });
-      return schema.parse(extractJson(text.text));
-    }
-  });
+	return withRetry(async () => {
+		try {
+			const result = await generateObject({
+				model,
+				schema,
+				system: sys,
+				...(messages ? { messages } : { prompt: prompt ?? "" }),
+			});
+			return result.object;
+		} catch (e) {
+			// Fall back to text + strict JSON if structured output isn't supported
+			// or the object didn't validate.
+			if (
+				!(e instanceof NoObjectGeneratedError) &&
+				!/response_format|json_schema|schema|object/i.test(
+					e instanceof Error ? e.message : String(e),
+				)
+			) {
+				throw e;
+			}
+			const jsonSys = `${sys}\n\nReturn ONLY a single JSON object that conforms to the required shape. No prose, no markdown fences.`;
+			const text = await generateText({
+				model,
+				system: jsonSys,
+				...(messages ? { messages } : { prompt: prompt ?? "" }),
+			});
+			return schema.parse(extractJson(text.text));
+		}
+	});
 }
 
 /** Free-text inference (the briefing). Returns the raw model text. */
 export async function runText(input: RunInput): Promise<string> {
-  const { agent, system, prompt, messages, provider: pOpts } = input;
-  const provider = getProvider({ ...pOpts, smithId: smithIdFor(agent) });
-  const model = provider("");
-  const sys = systemFor(agent, system);
-  return withRetry(async () => {
-    const result = await generateText({
-      model,
-      system: sys,
-      ...(messages ? { messages } : { prompt: prompt ?? "" }),
-    });
-    return result.text;
-  });
+	const { agent, system, prompt, messages, provider: pOpts } = input;
+	const provider = getProvider({ ...pOpts, smithId: smithIdFor(agent) });
+	const model = provider("");
+	const sys = systemFor(agent, system);
+	return withRetry(async () => {
+		const result = await generateText({
+			model,
+			system: sys,
+			...(messages ? { messages } : { prompt: prompt ?? "" }),
+		});
+		return result.text;
+	});
 }
 
 /** Pull the first JSON object/array out of a possibly fenced text blob. */
 function extractJson(text: string): unknown {
-  const trimmed = text.trim();
-  const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/);
-  const candidate = fenced?.[1] ? fenced[1].trim() : trimmed;
-  try {
-    return JSON.parse(candidate);
-  } catch {
-    // Last resort: slice from the first brace/bracket to its match.
-    const start = candidate.search(/[{[]/);
-    if (start === -1) throw new Error("No JSON found in model output");
-    return JSON.parse(candidate.slice(start));
-  }
+	const trimmed = text.trim();
+	const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/);
+	const candidate = fenced?.[1] ? fenced[1].trim() : trimmed;
+	try {
+		return JSON.parse(candidate);
+	} catch {
+		// Last resort: slice from the first brace/bracket to its match.
+		const start = candidate.search(/[{[]/);
+		if (start === -1) throw new Error("No JSON found in model output");
+		return JSON.parse(candidate.slice(start));
+	}
 }

@@ -44,14 +44,18 @@ const escapeHtml = (s: string): string =>
  */
 function appOrigin(): string {
 	const raw =
-		process.env.BETTER_AUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+		process.env.BETTER_AUTH_URL ??
+		process.env.NEXT_PUBLIC_APP_URL ??
+		"http://localhost:3000";
 	return raw.replace(/\/+$/, "");
 }
 
 export async function sendInvitationEmail(input: InvitationEmailInput): Promise<void> {
 	try {
 		if (!isConfigured()) {
-			console.warn(`[invite] email not configured; skipping notification to ${input.email}`);
+			console.warn(
+				`[invite] email not configured; skipping notification to ${input.email}`,
+			);
 			return;
 		}
 

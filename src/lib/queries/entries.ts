@@ -15,12 +15,7 @@ import type {
 	RelatedEntry,
 } from "./types";
 
-const ENTRY_TYPES: readonly EntryType[] = [
-	"decision",
-	"gotcha",
-	"principle",
-	"state",
-];
+const ENTRY_TYPES: readonly EntryType[] = ["decision", "gotcha", "principle", "state"];
 const ENTRY_STATUSES: readonly EntryStatus[] = [
 	"active",
 	"superseded",

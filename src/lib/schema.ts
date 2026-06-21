@@ -225,9 +225,7 @@ export const transcriptRecord = pgTable(
 		textContent: text("text_content"),
 		toolName: text("tool_name"),
 		raw: jsonb("raw").notNull(),
-		firstSeenFileId: text("first_seen_file_id").references(
-			() => transcriptFile.id,
-		),
+		firstSeenFileId: text("first_seen_file_id").references(() => transcriptFile.id),
 		createdAt: now(),
 	},
 	(t) => [
@@ -324,7 +322,10 @@ export const knowledgeEntry = pgTable(
 		/** Derived from evidence: sessions, recency, contradiction. 0..1. */
 		confidence: doublePrecision("confidence").notNull().default(0),
 		sessionCount: integer("session_count").notNull().default(0),
-		tags: jsonb("tags").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+		tags: jsonb("tags")
+			.$type<string[]>()
+			.notNull()
+			.default(sql`'[]'::jsonb`),
 		firstSeenAt: timestamp("first_seen_at", { withTimezone: true }),
 		lastSeenAt: timestamp("last_seen_at", { withTimezone: true }),
 		lastConfirmedAt: timestamp("last_confirmed_at", { withTimezone: true }),
@@ -390,9 +391,7 @@ export const briefing = pgTable(
 			.references(() => project.id),
 		content: text("content").notNull(),
 		stateOfMind: text("state_of_mind"),
-		generatedByRunId: text("generated_by_run_id").references(
-			() => analysisRun.id,
-		),
+		generatedByRunId: text("generated_by_run_id").references(() => analysisRun.id),
 		entryCountAtGen: integer("entry_count_at_gen"),
 		createdAt: now(),
 	},
@@ -448,16 +447,13 @@ export const entryRelations = relations(knowledgeEntry, ({ one, many }) => ({
 	}),
 }));
 
-export const entryEvidenceRelations = relations(
-	knowledgeEntryEvidence,
-	({ one }) => ({
-		entry: one(knowledgeEntry, {
-			fields: [knowledgeEntryEvidence.entryId],
-			references: [knowledgeEntry.id],
-		}),
-		record: one(transcriptRecord, {
-			fields: [knowledgeEntryEvidence.recordUuid],
-			references: [transcriptRecord.uuid],
-		}),
+export const entryEvidenceRelations = relations(knowledgeEntryEvidence, ({ one }) => ({
+	entry: one(knowledgeEntry, {
+		fields: [knowledgeEntryEvidence.entryId],
+		references: [knowledgeEntry.id],
 	}),
-);
+	record: one(transcriptRecord, {
+		fields: [knowledgeEntryEvidence.recordUuid],
+		references: [transcriptRecord.uuid],
+	}),
+}));

@@ -15,24 +15,24 @@ const { ingestToken } = schema;
 
 /** Resolved identity carried by a verified ingest token. */
 export type IngestAuth = {
-  tokenId: string;
-  personId?: string;
-  organizationId?: string;
-  machineId?: string;
+	tokenId: string;
+	personId?: string;
+	organizationId?: string;
+	machineId?: string;
 };
 
 /** A token row for the management UI — never includes the hash. */
 export type TokenListItem = {
-  id: string;
-  label: string | null;
-  createdAt: Date;
-  lastUsedAt: Date | null;
-  revokedAt: Date | null;
+	id: string;
+	label: string | null;
+	createdAt: Date;
+	lastUsedAt: Date | null;
+	revokedAt: Date | null;
 };
 
 /** sha256 hex of the raw token bytes (utf-8). */
 export function hashToken(raw: string): string {
-  return createHash("sha256").update(raw, "utf8").digest("hex");
+	return createHash("sha256").update(raw, "utf8").digest("hex");
 }
 
 /**
@@ -40,45 +40,48 @@ export function hashToken(raw: string): string {
  * token is unknown or revoked. Side effect: bumps `lastUsedAt` on success.
  */
 export async function verifyIngestToken(rawToken: string): Promise<IngestAuth | null> {
-  const trimmed = rawToken.trim();
-  if (trimmed.length === 0) {
-    return null;
-  }
+	const trimmed = rawToken.trim();
+	if (trimmed.length === 0) {
+		return null;
+	}
 
-  const tokenHash = hashToken(trimmed);
-  const rows = await db
-    .select({
-      id: ingestToken.id,
-      personId: ingestToken.personId,
-      organizationId: ingestToken.organizationId,
-      machineId: ingestToken.machineId,
-      revokedAt: ingestToken.revokedAt,
-    })
-    .from(ingestToken)
-    .where(eq(ingestToken.tokenHash, tokenHash))
-    .limit(1);
+	const tokenHash = hashToken(trimmed);
+	const rows = await db
+		.select({
+			id: ingestToken.id,
+			personId: ingestToken.personId,
+			organizationId: ingestToken.organizationId,
+			machineId: ingestToken.machineId,
+			revokedAt: ingestToken.revokedAt,
+		})
+		.from(ingestToken)
+		.where(eq(ingestToken.tokenHash, tokenHash))
+		.limit(1);
 
-  const found = rows.at(0);
-  if (!found) {
-    return null;
-  }
-  if (found.revokedAt) {
-    return null;
-  }
+	const found = rows.at(0);
+	if (!found) {
+		return null;
+	}
+	if (found.revokedAt) {
+		return null;
+	}
 
-  await db.update(ingestToken).set({ lastUsedAt: new Date() }).where(eq(ingestToken.id, found.id));
+	await db
+		.update(ingestToken)
+		.set({ lastUsedAt: new Date() })
+		.where(eq(ingestToken.id, found.id));
 
-  const auth: IngestAuth = { tokenId: found.id };
-  if (found.personId) {
-    auth.personId = found.personId;
-  }
-  if (found.organizationId) {
-    auth.organizationId = found.organizationId;
-  }
-  if (found.machineId) {
-    auth.machineId = found.machineId;
-  }
-  return auth;
+	const auth: IngestAuth = { tokenId: found.id };
+	if (found.personId) {
+		auth.personId = found.personId;
+	}
+	if (found.organizationId) {
+		auth.organizationId = found.organizationId;
+	}
+	if (found.machineId) {
+		auth.machineId = found.machineId;
+	}
+	return auth;
 }
 
 /**
@@ -86,30 +89,33 @@ export async function verifyIngestToken(rawToken: string): Promise<IngestAuth | 
  * is persisted. For seeding/CLI use.
  */
 export async function issueIngestToken(opts: {
-  label?: string;
-  personId?: string;
-  organizationId?: string;
-  machineId?: string;
+	label?: string;
+	personId?: string;
+	organizationId?: string;
+	machineId?: string;
 }): Promise<{ id: string; token: string }> {
-  // 32 random bytes → 64 hex chars, prefixed so it's recognizable in logs.
-  const token = `dpt_${randomBytes(32).toString("hex")}`;
-  const id = newId("ingestToken");
+	// 32 random bytes → 64 hex chars, prefixed so it's recognizable in logs.
+	const token = `dpt_${randomBytes(32).toString("hex")}`;
+	const id = newId("ingestToken");
 
-  await db.insert(ingestToken).values({
-    id,
-    tokenHash: hashToken(token),
-    label: opts.label ?? null,
-    personId: opts.personId ?? null,
-    organizationId: opts.organizationId ?? null,
-    machineId: opts.machineId ?? null,
-  });
+	await db.insert(ingestToken).values({
+		id,
+		tokenHash: hashToken(token),
+		label: opts.label ?? null,
+		personId: opts.personId ?? null,
+		organizationId: opts.organizationId ?? null,
+		machineId: opts.machineId ?? null,
+	});
 
-  return { id, token };
+	return { id, token };
 }
 
 /** Soft-revoke a token by id. Idempotent. */
 export async function revokeIngestToken(tokenId: string): Promise<void> {
-  await db.update(ingestToken).set({ revokedAt: new Date() }).where(eq(ingestToken.id, tokenId));
+	await db
+		.update(ingestToken)
+		.set({ revokedAt: new Date() })
+		.where(eq(ingestToken.id, tokenId));
 }
 
 /**
@@ -117,16 +123,16 @@ export async function revokeIngestToken(tokenId: string): Promise<void> {
  * the metadata needed to display and revoke tokens. Newest first.
  */
 export async function listTokensForPerson(personId: string): Promise<TokenListItem[]> {
-  const rows = await db
-    .select({
-      id: ingestToken.id,
-      label: ingestToken.label,
-      createdAt: ingestToken.createdAt,
-      lastUsedAt: ingestToken.lastUsedAt,
-      revokedAt: ingestToken.revokedAt,
-    })
-    .from(ingestToken)
-    .where(eq(ingestToken.personId, personId))
-    .orderBy(desc(ingestToken.createdAt));
-  return rows;
+	const rows = await db
+		.select({
+			id: ingestToken.id,
+			label: ingestToken.label,
+			createdAt: ingestToken.createdAt,
+			lastUsedAt: ingestToken.lastUsedAt,
+			revokedAt: ingestToken.revokedAt,
+		})
+		.from(ingestToken)
+		.where(eq(ingestToken.personId, personId))
+		.orderBy(desc(ingestToken.createdAt));
+	return rows;
 }

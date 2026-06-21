@@ -46,8 +46,8 @@ export function AcceptInvite({ invitationId }: { invitationId: string }) {
 	return (
 		<div className="flex flex-col gap-4">
 			<p className="font-serif text-[15px] leading-relaxed text-ink/90">
-				You've been invited to join an organization on Depot. Accept to start contributing your
-				sessions to its institutional memory.
+				You've been invited to join an organization on Depot. Accept to start
+				contributing your sessions to its institutional memory.
 			</p>
 			<div className="flex flex-wrap gap-2">
 				<button

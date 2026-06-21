@@ -7,13 +7,13 @@
  */
 
 export type ForkCandidate = {
-  uuid: string;
-  parentUuid: string | null;
+	uuid: string;
+	parentUuid: string | null;
 };
 
 export type ForkResult = {
-  forkedFromSessionId: string;
-  forkPointRecordUuid: string;
+	forkedFromSessionId: string;
+	forkPointRecordUuid: string;
 };
 
 /**
@@ -23,23 +23,23 @@ export type ForkResult = {
  *                        for parents that belong to a different session.
  */
 export function findForkPoint(
-  ownUuids: ReadonlySet<string>,
-  candidates: readonly ForkCandidate[],
-  parentSession: (parentUuid: string) => string | undefined,
+	ownUuids: ReadonlySet<string>,
+	candidates: readonly ForkCandidate[],
+	parentSession: (parentUuid: string) => string | undefined,
 ): ForkResult | null {
-  for (const c of candidates) {
-    const parent = c.parentUuid;
-    if (!parent) {
-      continue;
-    }
-    if (ownUuids.has(parent)) {
-      continue; // internal edge, not a fork
-    }
-    const owner = parentSession(parent);
-    if (!owner) {
-      continue; // parent unknown (records out of order) — not yet a fork
-    }
-    return { forkedFromSessionId: owner, forkPointRecordUuid: parent };
-  }
-  return null;
+	for (const c of candidates) {
+		const parent = c.parentUuid;
+		if (!parent) {
+			continue;
+		}
+		if (ownUuids.has(parent)) {
+			continue; // internal edge, not a fork
+		}
+		const owner = parentSession(parent);
+		if (!owner) {
+			continue; // parent unknown (records out of order) — not yet a fork
+		}
+		return { forkedFromSessionId: owner, forkPointRecordUuid: parent };
+	}
+	return null;
 }

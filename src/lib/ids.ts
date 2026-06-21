@@ -6,8 +6,7 @@ import { randomBytes } from "node:crypto";
  * depends on a non-deterministic external process.
  */
 
-const ALPHABET =
-	"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+const ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 export const ID_PREFIXES = {
 	person: "per",

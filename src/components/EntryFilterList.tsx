@@ -38,9 +38,7 @@ export function EntryFilterList({ entries }: { entries: EntrySummary[] }) {
 
 	const shown = useMemo(
 		() =>
-			filter === "all"
-				? entries
-				: entries.filter((e) => e.entryType === filter),
+			filter === "all" ? entries : entries.filter((e) => e.entryType === filter),
 		[entries, filter],
 	);
 
@@ -59,7 +57,9 @@ export function EntryFilterList({ entries }: { entries: EntrySummary[] }) {
 								borderColor: active
 									? "var(--color-gold)"
 									: "var(--color-hairline)",
-								color: active ? "var(--color-gold)" : "var(--color-muted)",
+								color: active
+									? "var(--color-gold)"
+									: "var(--color-muted)",
 								background: active
 									? "color-mix(in srgb, var(--color-gold) 8%, transparent)"
 									: "transparent",
@@ -81,7 +81,11 @@ export function EntryFilterList({ entries }: { entries: EntrySummary[] }) {
 			) : (
 				<ul className="overflow-hidden rounded-[8px] border border-hairline border-b-0">
 					{shown.map((entry) => (
-						<EntryRow key={entry.id} entry={entry} showType={filter === "all"} />
+						<EntryRow
+							key={entry.id}
+							entry={entry}
+							showType={filter === "all"}
+						/>
 					))}
 				</ul>
 			)}

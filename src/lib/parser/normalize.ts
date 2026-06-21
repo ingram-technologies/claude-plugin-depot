@@ -151,7 +151,9 @@ function flattenText(
 			}
 			case "tool_result": {
 				const body = flattenToolResult(block.content);
-				const prefix = block.is_error ? "[tool_result error] " : "[tool_result] ";
+				const prefix = block.is_error
+					? "[tool_result error] "
+					: "[tool_result] ";
 				if (body) parts.push(prefix + body);
 				break;
 			}
@@ -160,7 +162,10 @@ function flattenText(
 				break;
 		}
 	}
-	const joined = parts.filter((p) => p.length > 0).join("\n").trim();
+	const joined = parts
+		.filter((p) => p.length > 0)
+		.join("\n")
+		.trim();
 	return joined.length > 0 ? joined : null;
 }
 

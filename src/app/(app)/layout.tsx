@@ -6,11 +6,7 @@ import { Sidebar } from "@/components/Sidebar";
 import { requireViewer } from "@/lib/auth-helpers";
 import { listProjects } from "@/lib/queries";
 
-export default async function AppLayout({
-	children,
-}: {
-	children: React.ReactNode;
-}) {
+export default async function AppLayout({ children }: { children: React.ReactNode }) {
 	const viewer = await requireViewer();
 
 	// A signed-in user with no organization is sent to onboarding (create/join

@@ -63,9 +63,7 @@ export function CurationButtons({ entryId }: { entryId: string }) {
 					);
 				})}
 			</div>
-			{error && (
-				<p className="font-mono text-[11px] text-stale">{error}</p>
-			)}
+			{error && <p className="font-mono text-[11px] text-stale">{error}</p>}
 			{done && !error && (
 				<p className="font-mono text-[11px] text-muted">
 					Recorded — your call outranks AI confidence.

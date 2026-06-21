@@ -13,28 +13,28 @@
 import { createHash } from "node:crypto";
 
 export type FingerprintInput = {
-  /** Accepted for call-site symmetry; intentionally NOT part of the hash. */
-  runId?: string;
-  projectId: string;
-  claimType: string;
-  claim: string;
-  evidenceUuids: string[];
+	/** Accepted for call-site symmetry; intentionally NOT part of the hash. */
+	runId?: string;
+	projectId: string;
+	claimType: string;
+	claim: string;
+	evidenceUuids: string[];
 };
 
 /** Lowercase, collapse all whitespace runs to a single space, trim. */
 export function normalizeClaimText(claim: string): string {
-  return claim.toLowerCase().replace(/\s+/g, " ").trim();
+	return claim.toLowerCase().replace(/\s+/g, " ").trim();
 }
 
 export function claimFingerprint(input: FingerprintInput): string {
-  const claim = normalizeClaimText(input.claim);
-  // De-dup + sort evidence so order and repeats can't change the hash.
-  const evidence = Array.from(new Set(input.evidenceUuids)).sort();
-  const material = [
-    input.projectId,
-    input.claimType.toLowerCase().trim(),
-    claim,
-    evidence.join(","),
-  ].join("|");
-  return createHash("sha256").update(material).digest("hex");
+	const claim = normalizeClaimText(input.claim);
+	// De-dup + sort evidence so order and repeats can't change the hash.
+	const evidence = Array.from(new Set(input.evidenceUuids)).sort();
+	const material = [
+		input.projectId,
+		input.claimType.toLowerCase().trim(),
+		claim,
+		evidence.join(","),
+	].join("|");
+	return createHash("sha256").update(material).digest("hex");
 }

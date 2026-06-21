@@ -100,8 +100,7 @@ async function main() {
 		console.log(`${name}: ${await tableCount(table)}`);
 	}
 
-	const ok =
-		r2.records.inserted === 0 && r1.records.inserted > 0;
+	const ok = r2.records.inserted === 0 && r1.records.inserted > 0;
 	console.log(`\nIDEMPOTENT + INGESTED REAL DATA: ${ok ? "PASS ✅" : "FAIL ❌"}`);
 	await pool.end();
 	if (!ok) process.exit(1);
