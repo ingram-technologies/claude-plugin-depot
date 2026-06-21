@@ -3,7 +3,7 @@
  * transcript via personal tokens; assert two distinct projects, each stamped to
  * its org + person. Run: DATABASE_URL=… bunx tsx scripts/smoke-attribution.ts
  */
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
 import { db, pool, schema } from "../src/lib/db";
 import { ingestUpload } from "../src/lib/ingest";
