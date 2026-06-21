@@ -87,7 +87,11 @@ const SUMMARY_SELECT = `
 
 export async function listEntries(
 	projectId: string,
-	opts: { type?: EntryType; status?: EntryStatus } = {},
+	opts: {
+		type?: EntryType;
+		status?: EntryStatus;
+		organizationId?: string;
+	} = {},
 ): Promise<EntrySummary[]> {
 	const conds = ["e.project_id = $1"];
 	const params: unknown[] = [projectId];
@@ -97,6 +101,11 @@ export async function listEntries(
 	}
 	params.push(opts.status ?? "active");
 	conds.push(`e.status = $${params.length}`);
+	// Memories belong to a project; scope by the project's org when asked.
+	if (opts.organizationId) {
+		params.push(opts.organizationId);
+		conds.push(`p.organization_id = $${params.length}`);
+	}
 
 	const rows = await query<SummaryRow>(
 		`${SUMMARY_SELECT}
@@ -113,13 +122,21 @@ export async function listEntries(
 export async function recentlyLearned(
 	projectId: string,
 	limit = 8,
+	opts: { organizationId?: string } = {},
 ): Promise<EntrySummary[]> {
+	const params: unknown[] = [projectId];
+	let orgGuard = "";
+	if (opts.organizationId) {
+		params.push(opts.organizationId);
+		orgGuard = `and p.organization_id = $${params.length}`;
+	}
+	params.push(limit);
 	const rows = await query<SummaryRow>(
 		`${SUMMARY_SELECT}
-		 where e.project_id = $1 and e.status = 'active'
+		 where e.project_id = $1 and e.status = 'active' ${orgGuard}
 		 order by e.updated_at desc
-		 limit $2`,
-		[projectId, limit],
+		 limit $${params.length}`,
+		params,
 	);
 	return rows.map(toSummary);
 }
@@ -129,14 +146,23 @@ export async function recentlyLearned(
  * can see, reverse-chronological by updated_at. (Auth scoping is a TODO once
  * project membership exists; today every signed-in employee sees all.)
  */
-export async function feed(opts: { limit?: number } = {}): Promise<EntrySummary[]> {
+export async function feed(
+	opts: { limit?: number; organizationId?: string } = {},
+): Promise<EntrySummary[]> {
 	const limit = Math.min(Math.max(opts.limit ?? 50, 1), 200);
+	const params: unknown[] = [];
+	let orgGuard = "";
+	if (opts.organizationId) {
+		params.push(opts.organizationId);
+		orgGuard = `and p.organization_id = $${params.length}`;
+	}
+	params.push(limit);
 	const rows = await query<SummaryRow>(
 		`${SUMMARY_SELECT}
-		 where e.status = 'active'
+		 where e.status = 'active' ${orgGuard}
 		 order by e.updated_at desc
-		 limit $1`,
-		[limit],
+		 limit $${params.length}`,
+		params,
 	);
 	return rows.map(toSummary);
 }
@@ -149,20 +175,29 @@ export async function feed(opts: { limit?: number } = {}): Promise<EntrySummary[
 export async function searchEntries(
 	q: string,
 	limit = 40,
+	opts: { organizationId?: string } = {},
 ): Promise<EntrySummary[]> {
 	const needle = q.trim();
 	if (needle.length === 0) {
 		return [];
 	}
 	const like = `%${needle}%`;
+	const params: unknown[] = [like];
+	let orgGuard = "";
+	if (opts.organizationId) {
+		params.push(opts.organizationId);
+		orgGuard = `and p.organization_id = $${params.length}`;
+	}
+	params.push(Math.min(Math.max(limit, 1), 100));
 	const rows = await query<SummaryRow>(
 		`${SUMMARY_SELECT}
 		 where e.status = 'active'
 		   and (e.claim ilike $1 or e.title ilike $1 or e.body ilike $1
 		        or e.scope ilike $1 or p.slug ilike $1)
+		   ${orgGuard}
 		 order by e.confidence desc, e.last_seen_at desc nulls last
-		 limit $2`,
-		[like, Math.min(Math.max(limit, 1), 100)],
+		 limit $${params.length}`,
+		params,
 	);
 	return rows.map(toSummary);
 }
@@ -218,7 +253,16 @@ function toRelated(r: RelatedRow): RelatedEntry {
 	};
 }
 
-export async function getEntry(id: string): Promise<EntryDetail | null> {
+export async function getEntry(
+	id: string,
+	opts: { organizationId?: string } = {},
+): Promise<EntryDetail | null> {
+	const params: unknown[] = [id];
+	let orgGuard = "";
+	if (opts.organizationId) {
+		params.push(opts.organizationId);
+		orgGuard = `and p.organization_id = $${params.length}`;
+	}
 	const row = await maybeOne<DetailRow>(
 		`select e.id, e.project_id, p.slug as project_slug, p.display_name as project_name,
 		        e.entry_type, e.slug, e.title, e.claim, e.body, e.scope, e.status,
@@ -227,8 +271,8 @@ export async function getEntry(id: string): Promise<EntryDetail | null> {
 		        e.superseded_by_id
 		 from knowledge_entry e
 		 join project p on p.id = e.project_id
-		 where e.id = $1`,
-		[id],
+		 where e.id = $1 ${orgGuard}`,
+		params,
 	);
 	if (!row) {
 		return null;

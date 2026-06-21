@@ -120,6 +120,7 @@ async function ingestFile(
       machineFingerprint: payload.machine.fingerprint,
       projectPathAbs: file.projectPathAbs,
       gitRemoteRaw: file.gitRemoteRaw,
+      organizationId: auth.organizationId,
     },
     tx,
   );
@@ -129,6 +130,8 @@ async function ingestFile(
       machineId: machine.id,
       accountId: account.id,
       projectId: proj.id,
+      organizationId: auth.organizationId,
+      personId: auth.personId,
       cwd: file.projectPathAbs,
       gitBranch: file.gitBranch,
     },

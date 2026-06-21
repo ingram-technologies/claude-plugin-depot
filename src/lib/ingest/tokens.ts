@@ -6,7 +6,7 @@
 
 import { createHash, randomBytes } from "node:crypto";
 
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 
 import { db, schema } from "@/lib/db";
 import { newId } from "@/lib/ids";
@@ -17,7 +17,17 @@ const { ingestToken } = schema;
 export type IngestAuth = {
   tokenId: string;
   personId?: string;
+  organizationId?: string;
   machineId?: string;
+};
+
+/** A token row for the management UI — never includes the hash. */
+export type TokenListItem = {
+  id: string;
+  label: string | null;
+  createdAt: Date;
+  lastUsedAt: Date | null;
+  revokedAt: Date | null;
 };
 
 /** sha256 hex of the raw token bytes (utf-8). */
@@ -40,6 +50,7 @@ export async function verifyIngestToken(rawToken: string): Promise<IngestAuth | 
     .select({
       id: ingestToken.id,
       personId: ingestToken.personId,
+      organizationId: ingestToken.organizationId,
       machineId: ingestToken.machineId,
       revokedAt: ingestToken.revokedAt,
     })
@@ -61,6 +72,9 @@ export async function verifyIngestToken(rawToken: string): Promise<IngestAuth | 
   if (found.personId) {
     auth.personId = found.personId;
   }
+  if (found.organizationId) {
+    auth.organizationId = found.organizationId;
+  }
   if (found.machineId) {
     auth.machineId = found.machineId;
   }
@@ -74,6 +88,7 @@ export async function verifyIngestToken(rawToken: string): Promise<IngestAuth | 
 export async function issueIngestToken(opts: {
   label?: string;
   personId?: string;
+  organizationId?: string;
   machineId?: string;
 }): Promise<{ id: string; token: string }> {
   // 32 random bytes → 64 hex chars, prefixed so it's recognizable in logs.
@@ -85,6 +100,7 @@ export async function issueIngestToken(opts: {
     tokenHash: hashToken(token),
     label: opts.label ?? null,
     personId: opts.personId ?? null,
+    organizationId: opts.organizationId ?? null,
     machineId: opts.machineId ?? null,
   });
 
@@ -94,4 +110,23 @@ export async function issueIngestToken(opts: {
 /** Soft-revoke a token by id. Idempotent. */
 export async function revokeIngestToken(tokenId: string): Promise<void> {
   await db.update(ingestToken).set({ revokedAt: new Date() }).where(eq(ingestToken.id, tokenId));
+}
+
+/**
+ * List a person's tokens for the management UI. Never returns the hash — only
+ * the metadata needed to display and revoke tokens. Newest first.
+ */
+export async function listTokensForPerson(personId: string): Promise<TokenListItem[]> {
+  const rows = await db
+    .select({
+      id: ingestToken.id,
+      label: ingestToken.label,
+      createdAt: ingestToken.createdAt,
+      lastUsedAt: ingestToken.lastUsedAt,
+      revokedAt: ingestToken.revokedAt,
+    })
+    .from(ingestToken)
+    .where(eq(ingestToken.personId, personId))
+    .orderBy(desc(ingestToken.createdAt));
+  return rows;
 }

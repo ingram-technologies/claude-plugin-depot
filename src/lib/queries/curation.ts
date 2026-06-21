@@ -10,9 +10,9 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { getViewer } from "@/lib/auth-helpers";
 import { execute, maybeOne } from "@/lib/db";
 import { newId } from "@/lib/ids";
-import { getViewer } from "./session";
 
 const curateSchema = z.object({
 	entryId: z.string().min(1).max(64),
@@ -46,7 +46,7 @@ export async function curateEntry(input: unknown): Promise<CurateResult> {
 	await execute(
 		`insert into entry_curation (id, entry_id, person_id, action, note)
 		 values ($1, $2, $3, $4, $5)`,
-		[newId("curation"), entryId, viewer.personId, action, note ?? null],
+		[newId("curation"), entryId, viewer.person.id, action, note ?? null],
 	);
 
 	if (action === "confirm") {

@@ -2,9 +2,10 @@
  * Better Auth's tables, as Drizzle pgTables, PREFIXED `auth_` so they never
  * collide with the domain `session` / `account` tables in `schema.ts`.
  *
- * These mirror Better Auth's default email+password model. Better Auth is
- * configured (in `auth.ts`) to use these exact table + column names via the
- * drizzle adapter, so drizzle-kit can generate/track migrations for them.
+ * These mirror Better Auth's default email+password model plus the organization
+ * plugin (orgs / members / invitations). Better Auth is configured (in
+ * `auth.ts`) to use these exact table + column names via the drizzle adapter, so
+ * drizzle-kit can generate/track migrations for them.
  */
 
 import { boolean, pgTable, text, timestamp } from "drizzle-orm/pg-core";
@@ -15,8 +16,18 @@ export const authUser = pgTable("auth_user", {
 	email: text("email").notNull().unique(),
 	emailVerified: boolean("email_verified").notNull().default(false),
 	image: text("image"),
+	lastActiveOrganizationId: text("last_active_organization_id"),
 	createdAt: timestamp("created_at").notNull().defaultNow(),
 	updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const authOrganization = pgTable("auth_organization", {
+	id: text("id").primaryKey(),
+	name: text("name").notNull(),
+	slug: text("slug").notNull().unique(),
+	logo: text("logo"),
+	metadata: text("metadata"),
+	createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
 export const authSession = pgTable("auth_session", {
@@ -30,6 +41,34 @@ export const authSession = pgTable("auth_session", {
 	userId: text("user_id")
 		.notNull()
 		.references(() => authUser.id, { onDelete: "cascade" }),
+	activeOrganizationId: text("active_organization_id"),
+});
+
+export const authMember = pgTable("auth_member", {
+	id: text("id").primaryKey(),
+	organizationId: text("organization_id")
+		.notNull()
+		.references(() => authOrganization.id, { onDelete: "cascade" }),
+	userId: text("user_id")
+		.notNull()
+		.references(() => authUser.id, { onDelete: "cascade" }),
+	role: text("role").notNull(),
+	createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const authInvitation = pgTable("auth_invitation", {
+	id: text("id").primaryKey(),
+	organizationId: text("organization_id")
+		.notNull()
+		.references(() => authOrganization.id, { onDelete: "cascade" }),
+	email: text("email").notNull(),
+	role: text("role"),
+	status: text("status").notNull().default("pending"),
+	expiresAt: timestamp("expires_at").notNull(),
+	inviterId: text("inviter_id")
+		.notNull()
+		.references(() => authUser.id, { onDelete: "cascade" }),
+	createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
 export const authAccount = pgTable("auth_account", {

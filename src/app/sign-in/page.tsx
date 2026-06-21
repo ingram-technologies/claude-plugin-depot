@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 
+import { GoogleSignInButton } from "@/components/GoogleSignInButton";
 import { SignInForm } from "@/components/SignInForm";
 
 export default function SignInPage() {
@@ -16,6 +17,12 @@ export default function SignInPage() {
 					A project&rsquo;s institutional memory — cited, durable, quietly alive.
 				</p>
 				<Suspense fallback={null}>
+					<GoogleSignInButton />
+					<div className="my-4 flex items-center gap-3">
+						<span className="h-px flex-1 bg-hairline" />
+						<span className="font-mono text-[11px] text-muted">or</span>
+						<span className="h-px flex-1 bg-hairline" />
+					</div>
 					<SignInForm />
 				</Suspense>
 			</div>

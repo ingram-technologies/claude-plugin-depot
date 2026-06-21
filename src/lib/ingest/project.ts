@@ -9,7 +9,7 @@
  *   3. upsert `project_path` by (machineId, absPath) → projectId
  */
 
-import { and, eq, like } from "drizzle-orm";
+import { type SQL, and, eq, isNull, like } from "drizzle-orm";
 
 import { db, schema } from "@/lib/db";
 import { newId } from "@/lib/ids";
@@ -22,11 +22,21 @@ export { basenameOf, slugify } from "./slug";
 
 const { project, projectPath } = schema;
 
+/** NULL-aware org match: `= NULL` never matches in SQL, so orgless projects
+ *  (legacy/operator tokens) must compare with IS NULL. */
+function orgEq(organizationId?: string): SQL | undefined {
+  return organizationId === undefined || organizationId === null
+    ? isNull(project.organizationId)
+    : eq(project.organizationId, organizationId);
+}
+
 export type ResolveProjectInput = {
   machineId: string;
   machineFingerprint?: string;
   projectPathAbs: string;
   gitRemoteRaw?: string;
+  /** Owning tenant, from the upload's ingest token. Set on first insert. */
+  organizationId?: string;
 };
 
 export type ResolvedProject = {
@@ -42,20 +52,26 @@ export type ResolvedProject = {
  * that is currently free (callers still rely on the unique index as the final
  * arbiter under concurrency).
  */
-async function deriveUniqueSlug(conn: Tx, stem: string, canonicalRemote: string): Promise<string> {
+async function deriveUniqueSlug(
+  conn: Tx,
+  stem: string,
+  canonicalRemote: string,
+  organizationId?: string,
+): Promise<string> {
+  // Slugs are unique WITHIN an org, so only consider this org's slugs.
   const rows = await conn
     .select({ slug: project.slug })
     .from(project)
-    .where(like(project.slug, `${stem}%`));
+    .where(and(orgEq(organizationId), like(project.slug, `${stem}%`)));
   const taken = new Set<string>();
   for (const r of rows) {
     taken.add(r.slug);
   }
-  // If a project with our exact remote already holds `stem`, reuse it.
+  // If a project with our exact (org, remote) already holds a slug, reuse it.
   const mine = await conn
     .select({ slug: project.slug })
     .from(project)
-    .where(eq(project.canonicalRemote, canonicalRemote))
+    .where(and(orgEq(organizationId), eq(project.canonicalRemote, canonicalRemote)))
     .limit(1);
   const existing = mine.at(0);
   if (existing) {
@@ -85,8 +101,9 @@ export async function resolveProject(
   const fromRemote = canonicalRemote.startsWith("local:") ? "" : basenameOf(canonicalRemote);
   const displayName = fromRemote.length > 0 ? fromRemote : basenameOf(input.projectPathAbs);
 
-  // Upsert project by canonicalRemote. onConflictDoNothing keeps idempotency;
-  // we re-read to obtain the row (whether freshly inserted or pre-existing).
+  // Project identity is (organizationId, canonicalRemote): the same upstream
+  // repo in two orgs is two separate projects. Upsert idempotently and re-read.
+  const remoteMatch = and(orgEq(input.organizationId), eq(project.canonicalRemote, canonicalRemote));
   const existingRows = await conn
     .select({
       id: project.id,
@@ -95,7 +112,7 @@ export async function resolveProject(
       displayName: project.displayName,
     })
     .from(project)
-    .where(eq(project.canonicalRemote, canonicalRemote))
+    .where(remoteMatch)
     .limit(1);
   const existing = existingRows.at(0);
   if (existing) {
@@ -104,18 +121,26 @@ export async function resolveProject(
     return existing;
   }
 
-  const slug = await deriveUniqueSlug(conn, slugify(displayName), canonicalRemote);
+  const slug = await deriveUniqueSlug(
+    conn,
+    slugify(displayName),
+    canonicalRemote,
+    input.organizationId,
+  );
   const id = newId("project");
   await conn
     .insert(project)
     .values({
       id,
+      organizationId: input.organizationId ?? null,
       canonicalRemote,
       slug,
       displayName,
       lastActivityAt: new Date(),
     })
-    .onConflictDoNothing({ target: project.canonicalRemote });
+    .onConflictDoNothing({
+      target: [project.organizationId, project.canonicalRemote],
+    });
 
   // Re-read: handles the race where a concurrent ingest inserted first.
   const finalRows = await conn
@@ -126,7 +151,7 @@ export async function resolveProject(
       displayName: project.displayName,
     })
     .from(project)
-    .where(eq(project.canonicalRemote, canonicalRemote))
+    .where(remoteMatch)
     .limit(1);
   const resolved = finalRows.at(0);
   if (!resolved) {

@@ -8,7 +8,7 @@ import { verifyIngestToken } from "@/lib/ingest";
  */
 export async function authorizeBearer(
 	req: Request,
-): Promise<{ tokenId: string } | null> {
+): Promise<{ tokenId: string; organizationId?: string } | null> {
 	const header = req.headers.get("authorization");
 	if (!header) {
 		return null;
@@ -18,7 +18,11 @@ export async function authorizeBearer(
 		return null;
 	}
 	const auth = await verifyIngestToken(match[1]);
-	return auth ? { tokenId: auth.tokenId } : null;
+	if (!auth) {
+		return null;
+	}
+	// Scope every read to the token's org so a token only sees its own org.
+	return { tokenId: auth.tokenId, organizationId: auth.organizationId };
 }
 
 export function unauthorized(): Response {

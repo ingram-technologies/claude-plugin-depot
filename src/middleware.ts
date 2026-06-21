@@ -13,11 +13,19 @@ import { type NextRequest, NextResponse } from "next/server";
 // /auth is the Better Auth handler; /internal is worker/cron plumbing.
 const PUBLIC_PREFIXES = ["/sign-in", "/auth", "/api", "/internal"];
 
+// Expose the request path to server components (the (app) layout reads it to
+// decide the no-org → /onboarding redirect without looping on /onboarding).
+function passthrough(req: NextRequest) {
+	const headers = new Headers(req.headers);
+	headers.set("x-pathname", req.nextUrl.pathname);
+	return NextResponse.next({ request: { headers } });
+}
+
 export function middleware(req: NextRequest) {
 	const { pathname } = req.nextUrl;
 
 	if (PUBLIC_PREFIXES.some((p) => pathname.startsWith(p))) {
-		return NextResponse.next();
+		return passthrough(req);
 	}
 
 	const sessionCookie = getSessionCookie(req);
@@ -28,7 +36,7 @@ export function middleware(req: NextRequest) {
 		return NextResponse.redirect(url);
 	}
 
-	return NextResponse.next();
+	return passthrough(req);
 }
 
 export const config = {

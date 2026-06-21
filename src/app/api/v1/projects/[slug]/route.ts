@@ -23,12 +23,17 @@ export async function GET(
 		return Response.json({ error: "bad slug" }, { status: 400 });
 	}
 
-	const project = await getProjectBySlug(parsed.data.slug);
+	const project = await getProjectBySlug(parsed.data.slug, {
+		organizationId: auth.organizationId,
+	});
 	if (!project) {
 		return Response.json({ error: "not found" }, { status: 404 });
 	}
 
-	const entries = await listEntries(project.id, { status: "active" });
+	const entries = await listEntries(project.id, {
+		status: "active",
+		organizationId: auth.organizationId,
+	});
 	return Response.json({
 		project: {
 			slug: project.slug,

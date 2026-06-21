@@ -28,19 +28,24 @@ export async function GET(
 		return Response.json({ error: "bad slug" }, { status: 400 });
 	}
 
-	const project = await getProjectBySlug(parsed.data.slug);
+	const org = auth.organizationId;
+	const project = await getProjectBySlug(parsed.data.slug, {
+		organizationId: org,
+	});
 	if (!project) {
 		return Response.json({ error: "not found" }, { status: 404 });
 	}
 
 	const [briefing, top] = await Promise.all([
-		latestBriefing(project.id),
-		listEntries(project.id, { status: "active" }),
+		latestBriefing(project.id, { organizationId: org }),
+		listEntries(project.id, { status: "active", organizationId: org }),
 	]);
 
 	// Hydrate provenance for the top-N (bounded) so payloads stay sane.
 	const topN = top.slice(0, 12);
-	const detailed = await Promise.all(topN.map((e) => getEntry(e.id)));
+	const detailed = await Promise.all(
+		topN.map((e) => getEntry(e.id, { organizationId: org })),
+	);
 
 	return Response.json({
 		project: { slug: project.slug, name: project.displayName },

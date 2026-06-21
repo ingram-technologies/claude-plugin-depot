@@ -7,7 +7,7 @@ export async function GET(req: Request) {
 	if (!auth) {
 		return unauthorized();
 	}
-	const projects = await listProjects();
+	const projects = await listProjects({ organizationId: auth.organizationId });
 	return Response.json({
 		projects: projects.map((p) => ({
 			slug: p.slug,

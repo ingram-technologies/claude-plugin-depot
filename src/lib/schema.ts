@@ -32,12 +32,19 @@ const now = () =>
 
 // ── Identity ────────────────────────────────────────────────────────────────
 
-export const person = pgTable("person", {
-	id: text("id").primaryKey(),
-	displayName: text("display_name").notNull(),
-	email: text("email"),
-	createdAt: now(),
-});
+export const person = pgTable(
+	"person",
+	{
+		id: text("id").primaryKey(),
+		/** Links this domain person to its Better Auth user (1:1), when signed in
+		 *  through the web. Null for people seen only via uploads. */
+		authUserId: text("auth_user_id"),
+		displayName: text("display_name").notNull(),
+		email: text("email"),
+		createdAt: now(),
+	},
+	(t) => [uniqueIndex("person_auth_user_uq").on(t.authUserId)],
+);
 
 /** A Claude/AI assistant account, soft-owned by a person. (machine + account
  *  identify the uploader, per the product brief.) */
@@ -74,6 +81,8 @@ export const project = pgTable(
 	"project",
 	{
 		id: text("id").primaryKey(),
+		/** Owning organization (tenant). A project's Memories belong to its org. */
+		organizationId: text("organization_id"),
 		/** Normalized remote, e.g. `github.com/ingram-technologies/depot.ingram.tech`.
 		 *  For repos without a remote: `local:<machine fp>:<abs path>`. */
 		canonicalRemote: text("canonical_remote").notNull(),
@@ -84,8 +93,11 @@ export const project = pgTable(
 		lastActivityAt: timestamp("last_activity_at", { withTimezone: true }),
 	},
 	(t) => [
-		uniqueIndex("project_remote_uq").on(t.canonicalRemote),
-		uniqueIndex("project_slug_uq").on(t.slug),
+		// Identity is the remote/slug WITHIN an org, so two orgs can keep memory
+		// for the same upstream repo without colliding.
+		uniqueIndex("project_org_remote_uq").on(t.organizationId, t.canonicalRemote),
+		uniqueIndex("project_org_slug_uq").on(t.organizationId, t.slug),
+		index("project_org_idx").on(t.organizationId),
 	],
 );
 
@@ -119,6 +131,8 @@ export const ingestToken = pgTable(
 		tokenHash: text("token_hash").notNull(),
 		label: text("label"),
 		personId: text("person_id").references(() => person.id),
+		/** Tenant the token's uploads attribute to. */
+		organizationId: text("organization_id"),
 		machineId: text("machine_id").references(() => machine.id),
 		createdAt: now(),
 		lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
@@ -152,6 +166,10 @@ export const session = pgTable(
 		id: text("id").primaryKey(),
 		providerSessionId: text("provider_session_id").notNull(),
 		projectId: text("project_id").references(() => project.id),
+		/** Owning tenant + producer, carried from the upload's ingest token so a
+		 *  session attributes to the right org/person. */
+		organizationId: text("organization_id"),
+		personId: text("person_id").references(() => person.id),
 		machineId: text("machine_id")
 			.notNull()
 			.references(() => machine.id),
@@ -173,6 +191,7 @@ export const session = pgTable(
 	(t) => [
 		uniqueIndex("session_provider_uq").on(t.providerSessionId, t.machineId),
 		index("session_project_idx").on(t.projectId),
+		index("session_org_idx").on(t.organizationId),
 	],
 );
 

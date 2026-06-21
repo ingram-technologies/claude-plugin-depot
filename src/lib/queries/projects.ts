@@ -66,21 +66,40 @@ const PROJECT_SELECT = `
 	) s on s.project_id = p.id
 `;
 
-export async function listProjects(): Promise<ProjectSummary[]> {
+/**
+ * List projects. When `organizationId` is given, scope to that org's projects;
+ * when omitted, return every project (today's behavior — the UI passes the
+ * viewer's active org once it has one).
+ */
+export async function listProjects(
+	opts: { organizationId?: string } = {},
+): Promise<ProjectSummary[]> {
+	const where = opts.organizationId ? `where p.organization_id = $1` : "";
+	const params = opts.organizationId ? [opts.organizationId] : [];
 	const rows = await query<ProjectRow>(
 		`${PROJECT_SELECT}
+		 ${where}
 		 order by e.last_learned_at desc nulls last, p.last_activity_at desc nulls last`,
+		params,
 	);
 	return rows.map(toProjectSummary);
 }
 
+/**
+ * Look up a project by slug. With `organizationId`, only return it if it belongs
+ * to that org (so a slug collision across orgs resolves to the viewer's own).
+ */
 export async function getProjectBySlug(
 	slug: string,
+	opts: { organizationId?: string } = {},
 ): Promise<ProjectSummary | null> {
-	const row = await maybeOne<ProjectRow>(
-		`${PROJECT_SELECT} where p.slug = $1`,
-		[slug],
-	);
+	const params: unknown[] = [slug];
+	let where = `where p.slug = $1`;
+	if (opts.organizationId) {
+		params.push(opts.organizationId);
+		where += ` and p.organization_id = $${params.length}`;
+	}
+	const row = await maybeOne<ProjectRow>(`${PROJECT_SELECT} ${where}`, params);
 	return row ? toProjectSummary(row) : null;
 }
 
@@ -91,16 +110,27 @@ export async function getProjectBySlug(
 export async function projectActivity(
 	projectId: string,
 	days = 30,
+	opts: { organizationId?: string } = {},
 ): Promise<ActivityDay[]> {
+	const params: unknown[] = [projectId, days];
+	let orgGuard = "";
+	if (opts.organizationId) {
+		params.push(opts.organizationId);
+		orgGuard = `and exists (
+			select 1 from project p
+			where p.id = s.project_id and p.organization_id = $${params.length}
+		)`;
+	}
 	const rows = await query<{ day: string; count: number | string }>(
-		`select to_char(date_trunc('day', coalesce(last_activity_at, started_at, created_at)), 'YYYY-MM-DD') as day,
+		`select to_char(date_trunc('day', coalesce(s.last_activity_at, s.started_at, s.created_at)), 'YYYY-MM-DD') as day,
 		        count(*) as count
-		 from session
-		 where project_id = $1
-		   and coalesce(last_activity_at, started_at, created_at) >= now() - ($2 || ' days')::interval
+		 from session s
+		 where s.project_id = $1
+		   and coalesce(s.last_activity_at, s.started_at, s.created_at) >= now() - ($2 || ' days')::interval
+		   ${orgGuard}
 		 group by 1
 		 order by 1`,
-		[projectId, days],
+		params,
 	);
 	return rows.map((r) => ({ day: r.day, count: Number(r.count) }));
 }
@@ -110,7 +140,19 @@ export async function projectActivity(
  * in SQL so the three summary dots reflect the whole corpus, not a page of it.
  * Mirrors `freshness.ts` thresholds (21d/0.6 fresh, 90d/0.35 aging).
  */
-export async function corpusHealth(projectId: string): Promise<CorpusHealth> {
+export async function corpusHealth(
+	projectId: string,
+	opts: { organizationId?: string } = {},
+): Promise<CorpusHealth> {
+	const params: unknown[] = [projectId];
+	let orgGuard = "";
+	if (opts.organizationId) {
+		params.push(opts.organizationId);
+		orgGuard = `and exists (
+			select 1 from project p
+			where p.id = ke.project_id and p.organization_id = $${params.length}
+		)`;
+	}
 	const row = await maybeOne<{
 		fresh: number | string;
 		aging: number | string;
@@ -130,9 +172,10 @@ export async function corpusHealth(projectId: string): Promise<CorpusHealth> {
 				   or (last_seen_at < now() - interval '90 days' or confidence < 0.35)
 			) as stale,
 			count(*) as total
-		 from knowledge_entry
-		 where project_id = $1 and status = 'active'`,
-		[projectId],
+		 from knowledge_entry ke
+		 where ke.project_id = $1 and ke.status = 'active'
+		   ${orgGuard}`,
+		params,
 	);
 	if (!row) {
 		return { fresh: 0, aging: 0, stale: 0, total: 0 };

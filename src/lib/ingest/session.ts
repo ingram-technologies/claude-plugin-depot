@@ -22,6 +22,9 @@ export type ResolveSessionInput = {
   machineId: string;
   accountId?: string;
   projectId?: string;
+  /** Owning tenant + producer, from the upload's ingest token. */
+  organizationId?: string;
+  personId?: string;
   cwd?: string;
   gitBranch?: string;
   clientVersion?: string;
@@ -53,6 +56,12 @@ export async function resolveSession(
     if (input.projectId !== undefined) {
       set.projectId = input.projectId;
     }
+    if (input.organizationId !== undefined) {
+      set.organizationId = input.organizationId;
+    }
+    if (input.personId !== undefined) {
+      set.personId = input.personId;
+    }
     if (input.cwd !== undefined) {
       set.cwd = input.cwd;
     }
@@ -77,6 +86,8 @@ export async function resolveSession(
       machineId: input.machineId,
       accountId: input.accountId ?? null,
       projectId: input.projectId ?? null,
+      organizationId: input.organizationId ?? null,
+      personId: input.personId ?? null,
       cwd: input.cwd ?? null,
       gitBranch: input.gitBranch ?? null,
       clientVersion: input.clientVersion ?? null,

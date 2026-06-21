@@ -17,14 +17,24 @@ type BriefingRow = {
 
 export async function latestBriefing(
 	projectId: string,
+	opts: { organizationId?: string } = {},
 ): Promise<BriefingView | null> {
+	const params: unknown[] = [projectId];
+	let orgGuard = "";
+	if (opts.organizationId) {
+		params.push(opts.organizationId);
+		orgGuard = `and exists (
+			select 1 from project p
+			where p.id = b.project_id and p.organization_id = $${params.length}
+		)`;
+	}
 	const row = await maybeOne<BriefingRow>(
-		`select id, content, state_of_mind, entry_count_at_gen, created_at
-		 from briefing
-		 where project_id = $1
-		 order by created_at desc
+		`select b.id, b.content, b.state_of_mind, b.entry_count_at_gen, b.created_at
+		 from briefing b
+		 where b.project_id = $1 ${orgGuard}
+		 order by b.created_at desc
 		 limit 1`,
-		[projectId],
+		params,
 	);
 	if (!row) {
 		return null;
