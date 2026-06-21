@@ -17,11 +17,13 @@ export function SignInForm() {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [error, setError] = useState<string | null>(null);
+	const [notice, setNotice] = useState<string | null>(null);
 	const [busy, setBusy] = useState(false);
 
 	async function onSubmit(e: React.FormEvent) {
 		e.preventDefault();
 		setError(null);
+		setNotice(null);
 		setBusy(true);
 		try {
 			const res =
@@ -29,7 +31,22 @@ export function SignInForm() {
 					? await signIn.email({ email, password })
 					: await signUp.email({ email, password, name: name || email });
 			if (res.error) {
+				// Unverified account: Better Auth has already (re)sent the link.
+				if (res.error.code === "EMAIL_NOT_VERIFIED") {
+					setNotice(
+						`We emailed a verification link to ${email}. Click it to finish signing in.`,
+					);
+					return;
+				}
 				setError(res.error.message ?? "Authentication failed.");
+				return;
+			}
+			// Email verification is required, so a fresh sign-up returns no session
+			// token — the user must verify before they can enter. Don't redirect.
+			if (mode === "up" && !res.data?.token) {
+				setNotice(
+					`Account created. We emailed a verification link to ${email} — click it to sign in.`,
+				);
 				return;
 			}
 			router.push(next);
@@ -70,6 +87,11 @@ export function SignInForm() {
 			/>
 
 			{error && <p className="font-mono text-[11px] text-stale">{error}</p>}
+			{notice && (
+				<p className="rounded-[6px] border border-gold/30 bg-gold/5 px-3 py-2 font-sans text-[12px] leading-relaxed text-gold">
+					{notice}
+				</p>
+			)}
 
 			<button
 				type="submit"
@@ -84,6 +106,7 @@ export function SignInForm() {
 				onClick={() => {
 					setMode((m) => (m === "in" ? "up" : "in"));
 					setError(null);
+					setNotice(null);
 				}}
 				className="self-start font-sans text-[12px] text-muted transition-colors hover:text-ink"
 			>

@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 
+import { AuthNotice } from "@/components/AuthNotice";
 import { GoogleSignInButton } from "@/components/GoogleSignInButton";
 import { SignInForm } from "@/components/SignInForm";
 
@@ -18,6 +19,7 @@ export default function SignInPage() {
 					alive.
 				</p>
 				<Suspense fallback={null}>
+					<AuthNotice />
 					<GoogleSignInButton />
 					<div className="my-4 flex items-center gap-3">
 						<span className="h-px flex-1 bg-hairline" />

@@ -36,6 +36,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import * as authSchema from "@/lib/auth-schema";
 import { pool } from "@/lib/db";
 import { sendInvitationEmail } from "@/lib/email/invitation";
+import { sendVerificationEmail } from "@/lib/email/verification";
 import { accessControl, admin, member, owner } from "@/lib/permissions";
 
 const authDb = drizzle(pool, { schema: authSchema });
@@ -100,8 +101,39 @@ export const auth = betterAuth({
 	}),
 	emailAndPassword: {
 		enabled: true,
-		// Internal tool: don't block first sign-in on email verification.
-		requireEmailVerification: false,
+		// Require a verified email before a password account can sign in. This is
+		// what makes same-email Google login safe to AUTO-LINK: Better Auth's
+		// default `account.accountLinking.requireLocalEmailVerified` (true) only
+		// merges a social login into an existing account once that account's email
+		// is verified. Without this, an unverified password row for someone else's
+		// address would block their Google login with `account_not_linked` (the
+		// bug we hit) — or, worse, if we'd "fixed" it by trusting Google, let an
+		// attacker's unverified row absorb the real owner's identity.
+		requireEmailVerification: true,
+	},
+	emailVerification: {
+		// Send on sign-up and (Better Auth does this automatically) on any sign-in
+		// attempt by an unverified account, so the link is always one click away.
+		sendOnSignUp: true,
+		// Once verified, drop the user straight into a session — no second login.
+		autoSignInAfterVerification: true,
+		expiresIn: 60 * 60 * 24, // 24h
+		async sendVerificationEmail({ user, url }) {
+			await sendVerificationEmail({ email: user.email, name: user.name, url });
+		},
+	},
+	account: {
+		// Linking is implicitly enabled in Better Auth; we set it explicitly to
+		// document the posture. We deliberately DO NOT list Google in
+		// `trustedProviders` and keep `requireLocalEmailVerified` at its default
+		// (true): a social account merges into an existing user only when BOTH the
+		// provider's email and the local account's email are verified. Google
+		// always returns a verified email, so once the password account is
+		// verified the link is automatic — and an unverified local account can
+		// never be silently taken over.
+		accountLinking: {
+			enabled: true,
+		},
 	},
 	...(Object.keys(socialProviders).length > 0 ? { socialProviders } : {}),
 	user: {

@@ -18,7 +18,14 @@ export function GoogleSignInButton() {
 	async function onClick() {
 		setBusy(true);
 		try {
-			await signIn.social({ provider: "google", callbackURL: next });
+			await signIn.social({
+				provider: "google",
+				callbackURL: next,
+				// Bounce failures (e.g. account_not_linked) back to the sign-in page
+				// so <AuthNotice> can explain them, instead of Better Auth's default
+				// /error sink. We preserve `next` so a retry still lands the user home.
+				errorCallbackURL: `/sign-in?next=${encodeURIComponent(next)}`,
+			});
 		} catch {
 			setBusy(false);
 		}
