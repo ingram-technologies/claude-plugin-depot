@@ -46,7 +46,9 @@ Doctrine (non-negotiable):
 export const EXTRACTOR_AGENT: AgentSpec = {
   slug: "depot-extractor",
   name: "Depot Extractor",
-  model: "gpt-5.5-mini",
+  // gpt-5.5-mini is in IC's catalog but not provisioned on this tenant; gpt-5.5
+  // is the verified-working model. Revisit when a cheaper model is available.
+  model: "gpt-5.5",
   enabledHostedTools: [],
   autoMemory: false,
   variables: [],

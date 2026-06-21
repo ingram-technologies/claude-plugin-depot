@@ -171,7 +171,24 @@ async function decide(
     schema: CanonicalDecision,
     prompt,
   });
-  return result;
+
+  // Fill any omitted content from the claim itself (provenance/content must
+  // never be empty), and clamp to the canonical lengths.
+  const content: CanonicalContentT = {
+    title: (result.content?.title || titleFrom(claim.claim)).slice(0, 120),
+    claim: (result.content?.claim || claim.claim).slice(0, 400),
+    body: (result.content?.body ?? claim.body ?? "").slice(0, 2_000),
+    scope: (result.content?.scope ?? claim.scope ?? "").slice(0, 200),
+  };
+
+  // A merge/supersede must name a real candidate; otherwise treat it as new.
+  const targetEntryId = result.targetEntryId ?? null;
+  const validTarget =
+    targetEntryId !== null && candidates.some((c) => c.id === targetEntryId);
+  const decision =
+    result.decision !== "new" && validTarget ? result.decision : "new";
+
+  return { decision, targetEntryId: validTarget ? targetEntryId : null, content };
 }
 
 function canonicalizePrompt(claim: ClaimRow, candidates: CandidateRow[]): string {
