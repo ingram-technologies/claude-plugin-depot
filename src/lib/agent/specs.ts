@@ -46,8 +46,10 @@ Doctrine (non-negotiable):
 export const EXTRACTOR_AGENT: AgentSpec = {
   slug: "depot-extractor",
   name: "Depot Extractor",
-  // gpt-5.5-mini is in IC's catalog but not provisioned on this tenant; gpt-5.5
-  // is the verified-working model. Revisit when a cheaper model is available.
+  // IC gates only by provider key and forwards the model id upstream unchanged;
+  // the upstream provider/gateway has no `gpt-5.5-mini` (the IC catalog entry is
+  // stale), so it 404s. `gpt-5.5` is verified working. This value only takes
+  // effect after `pulumi up` republishes the agent version (see pulumi/).
   model: "gpt-5.5",
   enabledHostedTools: [],
   autoMemory: false,
