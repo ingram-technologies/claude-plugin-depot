@@ -112,9 +112,13 @@ export const auth = betterAuth({
 		requireEmailVerification: true,
 	},
 	emailVerification: {
-		// Send on sign-up and (Better Auth does this automatically) on any sign-in
-		// attempt by an unverified account, so the link is always one click away.
+		// Send the link on sign-up AND on every sign-in attempt by an unverified
+		// account. Better Auth gates the sign-in resend behind `sendOnSignIn`
+		// (without it, an unverified sign-in throws EMAIL_NOT_VERIFIED but mails
+		// nothing) — so both flags are required for "you'll get a fresh link
+		// whenever you try to get in" to actually hold.
 		sendOnSignUp: true,
+		sendOnSignIn: true,
 		// Once verified, drop the user straight into a session — no second login.
 		autoSignInAfterVerification: true,
 		expiresIn: 60 * 60 * 24, // 24h
