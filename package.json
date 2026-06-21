@@ -20,6 +20,8 @@
 	},
 	"dependencies": {
 		"@ingram-tech/ai-sdk-adapter": "^0.1.1",
+		"@ingram-tech/email": "^0.1.2",
+		"@ingram-tech/nk-auth": "^0.7.4",
 		"@ingram-tech/nk-db": "^0.6.0",
 		"ai": "^6.0.0",
 		"better-auth": "^1.6.0",
