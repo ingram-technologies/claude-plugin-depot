@@ -1,52 +1,17 @@
 {
-	"name": "depot",
-	"version": "0.1.0",
+	"name": "depot-upload",
+	"version": "1.0.0",
 	"private": true,
+	"description": "Claude Code plugin + CLI that uploads transcript records to Depot, incrementally and idempotently.",
 	"type": "module",
+	"bin": {
+		"depot-upload": "bin/depot-upload.ts"
+	},
 	"scripts": {
-		"dev": "nk dev",
-		"dev:next": "next dev",
-		"build": "next build",
-		"start": "next start",
-		"typecheck": "tsc --noEmit",
-		"lint": "oxlint",
-		"format": "oxfmt --write .",
-		"check": "nk check",
-		"test": "vitest run",
-		"test:watch": "vitest",
-		"db:generate": "drizzle-kit generate",
-		"db:migrate": "tsx scripts/migrate.ts",
-		"db:studio": "drizzle-kit studio"
+		"depot-upload": "node bin/depot-upload.ts",
+		"dry-run": "node bin/depot-upload.ts --dry-run --verbose"
 	},
-	"dependencies": {
-		"@ingram-tech/ai-sdk-adapter": "^0.1.1",
-		"@ingram-tech/email": "^0.1.2",
-		"@ingram-tech/nk-auth": "^0.7.4",
-		"@ingram-tech/nk-db": "^0.6.0",
-		"ai": "^6.0.0",
-		"better-auth": "^1.6.0",
-		"drizzle-orm": "^0.45.0",
-		"next": "16.2.9",
-		"pg": "^8.13.0",
-		"react": "19.2.7",
-		"react-dom": "19.2.7",
-		"zod": "^4.4.3"
-	},
-	"devDependencies": {
-		"@electric-sql/pglite": "^0.5.0",
-		"@electric-sql/pglite-socket": "^0.2.4",
-		"@ingram-tech/nk-dev": "^0.2.0",
-		"@tailwindcss/postcss": "^4.1.0",
-		"@types/node": "^25",
-		"@types/pg": "^8.11.0",
-		"@types/react": "^19",
-		"@types/react-dom": "^19",
-		"drizzle-kit": "^0.31.0",
-		"oxfmt": "^0.55.0",
-		"oxlint": "^1.70.0",
-		"tailwindcss": "^4.1.0",
-		"tsx": "^4.22.4",
-		"typescript": "^6",
-		"vitest": "^4.1.6"
+	"engines": {
+		"node": ">=20"
 	}
 }

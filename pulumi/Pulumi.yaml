@@ -1,8 +1,0 @@
-name: depot
-runtime: nodejs
-description: >-
-  Depot's Ingram Cloud analyzer agents (extractor, canonicalizer, briefer). The
-  specs/prompts live in this app repo (src/lib/agent/specs.ts); this program
-  declares each as an IcAgent against @ingram-tech/pulumi-ingram-cloud so a
-  prompt or model edit ships as `pulumi up`. Tenant-level wiring (project token,
-  Vercel env) lives in the infra repo.

@@ -1,11 +1,16 @@
 {
-	"extends": "@ingram-tech/nk-dev/tsconfig/nextjs.json",
 	"compilerOptions": {
-		"paths": {
-			"@/*": ["./src/*"]
-		},
-		"plugins": [{ "name": "next" }]
+		"target": "ES2022",
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"lib": ["ES2023", "DOM"],
+		"strict": true,
+		"noUncheckedIndexedAccess": false,
+		"allowImportingTsExtensions": true,
+		"verbatimModuleSyntax": true,
+		"noEmit": true,
+		"skipLibCheck": true,
+		"types": ["node"]
 	},
-	"include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-	"exclude": ["node_modules", "plugin", "pulumi"]
+	"include": ["bin/**/*.ts", "src/**/*.ts"]
 }

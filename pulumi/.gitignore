@@ -1,5 +1,0 @@
-node_modules/
-bun.lock
-# Pulumi stack state (encrypted secrets) — managed out of band
-Pulumi.*.yaml
-!Pulumi.yaml
