@@ -7,6 +7,8 @@
 import os from "node:os";
 import path from "node:path";
 
+import { readSavedToken } from "./credentials.ts";
+
 export type Flags = {
 	once: boolean;
 	watch: boolean;
@@ -126,7 +128,14 @@ export function parseFlags(argv: readonly string[]): Flags {
 
 export function loadConfig(argv: readonly string[]): Config {
 	const depotUrl = (process.env.DEPOT_URL ?? DEFAULT_DEPOT_URL).replace(/\/+$/, "");
-	const token = process.env.DEPOT_TOKEN ?? null;
+	const stateDir = defaultStateDir();
+	// Prefer an explicit env token; otherwise fall back to the token saved by
+	// `depot login` (so the uploader just works after a browser login).
+	const envToken = process.env.DEPOT_TOKEN;
+	const token =
+		envToken && envToken.trim().length > 0
+			? envToken.trim()
+			: readSavedToken(stateDir);
 	const accountIdOverride = process.env.DEPOT_ACCOUNT_ID ?? null;
 
 	return {
@@ -137,7 +146,7 @@ export function loadConfig(argv: readonly string[]): Config {
 				? accountIdOverride.trim()
 				: null,
 		projectsDir: defaultProjectsDir(),
-		stateDir: defaultStateDir(),
+		stateDir,
 		maxRecordsPerRequest: MAX_RECORDS_PER_REQUEST,
 		flags: parseFlags(argv),
 	};

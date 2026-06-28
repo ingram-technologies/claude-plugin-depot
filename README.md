@@ -83,16 +83,34 @@ nothing.
 \* Not required with `--dry-run`. Without a token a real run exits non-zero and
 the auto-sync hook stays silent.
 
-### How to get a `DEPOT_TOKEN`
+### Getting connected
 
-Ask a Depot admin to mint an ingest token for you. It's a `dpt_…` bearer token
-tied to your person + organization; Depot stores only a hash of it and shows the
-raw value once, at creation. Put it in your shell profile so both your shell and
-Claude Code's hooks inherit it:
+**Easiest — sign in through the browser** (no token copy-paste). Run the login
+slash command (or the CLI), approve in the browser, and the token is delivered
+straight back to this machine and saved to `<stateDir>/credentials.json` — the
+uploader picks it up automatically:
+
+```text
+/depot:login
+```
+
+```bash
+# or directly:
+bun bin/depot-login.ts        # opens your browser; sign in → Authorize
+```
+
+That's all the uploader needs. To also enable the **MCP tools** for your agent,
+the login command prints an `export DEPOT_TOKEN="dpt_…"` line — add it to your
+shell profile so Claude Code's MCP client inherits it (env can't be read from the
+credentials file):
 
 ```bash
 echo 'export DEPOT_TOKEN="dpt_…"' >> ~/.zshrc   # or ~/.bashrc
 ```
+
+**Manual** — create a token yourself at `https://depot.ingram.tech/tokens` (shown
+once, at creation) and export it as above. `DEPOT_TOKEN` in the environment always
+overrides the saved credentials file.
 
 ## CLI usage
 

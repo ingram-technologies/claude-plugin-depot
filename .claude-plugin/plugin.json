@@ -1,7 +1,7 @@
 {
 	"name": "depot",
 	"description": "Depot for Claude Code: after each session, syncs new transcript records to your team's Depot server (institutional memory); and gives your agent Depot's MCP tools — project brief, per-file context (what already broke here and what fixed it), and memory search — to consult before it works. Use /depot-sync to upload on demand.",
-	"version": "1.1.0",
+	"version": "1.2.0",
 	"author": {
 		"name": "Ingram Tech"
 	},
