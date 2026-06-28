@@ -2,9 +2,9 @@
 	"mcpServers": {
 		"depot": {
 			"type": "http",
-			"url": "https://depot.ingram.tech/api/mcp",
+			"url": "${DEPOT_URL:-https://depot.ingram.tech}/api/mcp",
 			"headers": {
-				"Authorization": "Bearer ${DEPOT_TOKEN}"
+				"Authorization": "Bearer ${DEPOT_TOKEN:-}"
 			}
 		}
 	}
