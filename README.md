@@ -57,9 +57,10 @@ the auto-sync hook stays silent.
 
 ### How to get a `DEPOT_TOKEN`
 
-Ask a Depot admin to mint an ingest token for you (Depot signs/verifies these
-with its `INGEST_TOKEN_SECRET`). Put it in your shell profile so both your shell
-and Claude Code's hooks inherit it:
+Ask a Depot admin to mint an ingest token for you. It's a `dpt_…` bearer token
+tied to your person + organization; Depot stores only a hash of it and shows the
+raw value once, at creation. Put it in your shell profile so both your shell and
+Claude Code's hooks inherit it:
 
 ```bash
 echo 'export DEPOT_TOKEN="dpt_…"' >> ~/.zshrc   # or ~/.bashrc
