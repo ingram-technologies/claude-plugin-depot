@@ -5,12 +5,40 @@ Ships your **new** Claude Code transcript records to your team's
 per-project Memories. Uploads are **incremental** (only lines added since the
 last run) and **idempotent** (safe to run repeatedly and safe to interrupt).
 
-It is two things in one directory:
+It is three things in one directory:
 
 - A standalone CLI — `bin/depot-upload.ts` — runnable with `bun` or `node`, with
   zero dependencies. Use it from a shell, a cron job, or `--watch`.
 - A Claude Code plugin that runs the CLI automatically after each session via a
   `SessionEnd` hook, plus a `/depot:depot-sync` slash command for on-demand syncs.
+- **Depot's MCP server**, so the loop closes: your transcripts flow *out* to
+  Depot, and Depot's distilled memory flows *back in* as tools your agent calls
+  before it works. Bundled via `.mcp.json` — installing the plugin wires it up.
+
+## Agent tools (MCP)
+
+The plugin registers a remote MCP server (`depot`, at
+`https://depot.ingram.tech/api/mcp`) authenticated with your `DEPOT_TOKEN`. Once
+installed with the token set, your agent gets four read-only tools:
+
+| Tool | What it answers |
+| --- | --- |
+| `depot_list_projects` | Which projects does Depot have memory for? (find the slug) |
+| `depot_project_brief` | What's the state of this project — decisions, gotchas, and the files where work has hurt most? |
+| `depot_file_context` | **Before I edit this file:** what already broke here, and what fixed it? Plus the Memories that cite it. |
+| `depot_search_memories` | Have we decided / hit this before? (searches Memories, not raw transcripts) |
+
+The high-value move is `depot_file_context` — it's `git blame` for *intent*: the
+failed edits, their fixes, and the decisions behind a file, each linked to the
+transcript that proves it. Ask your agent to "check Depot before editing," or add
+it to your `CLAUDE.md`.
+
+To use the server without the plugin, add it directly:
+
+```bash
+claude mcp add --transport http depot https://depot.ingram.tech/api/mcp \
+  --header "Authorization: Bearer dpt_…"
+```
 
 ## What is and isn't sent (privacy)
 
