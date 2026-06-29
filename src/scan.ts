@@ -200,6 +200,16 @@ export function scan(opts: ScanOptions): ScannedFile[] {
 		}
 
 		const git = gitInfo(projectPathAbs);
+
+		// Privacy gate: Depot only keeps memory for git-remote-backed projects.
+		// A directory with no `origin` remote may be a private scratch folder, so
+		// its transcripts must never leave this machine — skip it entirely. (The
+		// server enforces the same rule, but stopping here means the bytes are
+		// never even sent.)
+		if (!git.remote) {
+			continue;
+		}
+
 		const branch = pickBranch(records) ?? git.branch;
 
 		results.push({
