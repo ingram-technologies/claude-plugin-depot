@@ -7,8 +7,8 @@
 	"plugins": [
 		{
 			"name": "depot",
-			"description": "Uploads Claude Code transcripts to your team's Depot (institutional memory) after each session, and gives your agent Depot's MCP tools. Connect with /depot:login.",
-			"version": "1.2.0",
+			"description": "Uploads Claude Code transcripts to your team's Depot (institutional memory) after each session, and gives your agent Depot's MCP tools. Connect with /depot:depot-login.",
+			"version": "1.3.0",
 			"source": "./"
 		}
 	]

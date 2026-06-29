@@ -95,7 +95,7 @@ async function main(): Promise<void> {
 			}
 			res.writeHead(200, { "content-type": "text/html" }).end(
 				"<!doctype html><meta charset=utf-8><title>depot</title>" +
-					'<body style="font-family:system-ui;background:#16140f;color:#e8e2d4;' +
+					"<body style=\"font-family:system-ui;background:#16140f;color:#e8e2d4;" +
 					'display:grid;place-items:center;height:100vh;margin:0">' +
 					"<p>✓ Connected. You can close this tab and return to your terminal.</p>",
 			);
@@ -127,12 +127,14 @@ async function main(): Promise<void> {
 	});
 
 	saveToken(cfg.stateDir, token, depotUrl);
-	log("\n✓ Connected. Token saved to:");
+	// Deliberately do NOT print the token. It is read from the credentials file
+	// by the uploader and (via the MCP headersHelper) by the agent's tools — so it
+	// never needs to be copied and never lands in a conversation transcript.
+	log("\n✓ Connected to Depot. Token saved (kept private) to:");
 	log(`  ${credentialsPath(cfg.stateDir)}`);
-	log("\nThe uploader will use it automatically (run /depot:depot-sync, or just");
-	log("finish a session). To also enable the agent's MCP tools, add this to your");
-	log("shell profile so Claude Code's MCP client inherits it:\n");
-	log(`  export DEPOT_TOKEN="${token}"\n`);
+	log("\nNothing to copy: the uploader and the agent's MCP tools read it from");
+	log("there automatically. Run /reload-plugins (or restart Claude Code) to");
+	log("connect the MCP, then /depot:depot-sync to upload your transcripts.");
 }
 
 main().catch((err: unknown) => {
