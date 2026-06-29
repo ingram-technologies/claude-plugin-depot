@@ -3,9 +3,7 @@
 		"depot": {
 			"type": "http",
 			"url": "${DEPOT_URL:-https://depot.ingram.tech}/api/mcp",
-			"headers": {
-				"Authorization": "Bearer ${DEPOT_TOKEN:-}"
-			}
+			"headersHelper": "${CLAUDE_PLUGIN_ROOT}/bin/depot-mcp-headers.sh"
 		}
 	}
 }

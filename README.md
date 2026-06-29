@@ -18,8 +18,10 @@ It is three things in one directory:
 ## Agent tools (MCP)
 
 The plugin registers a remote MCP server (`depot`, at
-`https://depot.ingram.tech/api/mcp`) authenticated with your `DEPOT_TOKEN`. Once
-installed with the token set, your agent gets four read-only tools:
+`https://depot.ingram.tech/api/mcp`). It authenticates with the token saved by
+`/depot:depot-login` — read at connect time via a `headersHelper`, so there's no
+env var to set and the token is never copied or printed. Once you've logged in,
+your agent gets four read-only tools:
 
 | Tool | What it answers |
 | --- | --- |
@@ -67,50 +69,47 @@ nothing.
 - `bun` (preferred) or Node.js ≥ 20. The CLI runs the `.ts` files directly:
   `bun` runs TypeScript natively; Node ≥ 22.6 strips types natively
   (`--experimental-strip-types` on 20.x — Node 22+ needs no flag).
-- A `DEPOT_TOKEN` (see below).
+- A connection — easiest via `/depot:depot-login` (see *Getting connected*).
 
 ## Configuration (env vars)
 
 | Var                  | Required | Default                      | Meaning                                              |
 | -------------------- | -------- | ---------------------------- | ---------------------------------------------------- |
-| `DEPOT_TOKEN`        | yes\*    | —                            | Bearer token for `POST /api/ingest`.                 |
+| `DEPOT_TOKEN`        | no\*     | from `depot login`           | Bearer token. Overrides the saved credentials file.  |
 | `DEPOT_URL`          | no       | `https://depot.ingram.tech`  | Depot server base URL.                               |
 | `DEPOT_ACCOUNT_ID`   | no       | from `~/.claude.json`        | Override the account identifier.                     |
 | `DEPOT_PROJECTS_DIR` | no       | `~/.claude/projects`         | Where transcript JSONL files live.                   |
 | `DEPOT_WATCH_SECONDS`| no       | `60`                         | Poll interval for `--watch`.                         |
 | `XDG_STATE_HOME`     | no       | `~/.claude`                  | If set, state lives in `$XDG_STATE_HOME/depot`.      |
 
-\* Not required with `--dry-run`. Without a token a real run exits non-zero and
-the auto-sync hook stays silent.
+\* Not an env var you must set — `/depot:depot-login` saves the token to a
+credentials file that both the uploader and the MCP read. With no token at all, a
+real run exits non-zero and the auto-sync hook stays silent.
 
 ### Getting connected
 
-**Easiest — sign in through the browser** (no token copy-paste). Run the login
-slash command (or the CLI), approve in the browser, and the token is delivered
-straight back to this machine and saved to `<stateDir>/credentials.json` — the
-uploader picks it up automatically:
+**Sign in through the browser — one step, no copy-paste, no token in your chat.**
+Run the login command (or the CLI directly), approve in the browser, and the
+token is delivered straight back to this machine and saved to
+`<stateDir>/credentials.json` (mode 0600). The command prints **no token**:
 
 ```text
-/depot:login
+/depot:depot-login
 ```
 
 ```bash
-# or directly:
+# or, fully programmatic (no agent, no model turn):
 bun bin/depot-login.ts        # opens your browser; sign in → Authorize
 ```
 
-That's all the uploader needs. To also enable the **MCP tools** for your agent,
-the login command prints an `export DEPOT_TOKEN="dpt_…"` line — add it to your
-shell profile so Claude Code's MCP client inherits it (env can't be read from the
-credentials file):
+Both the **uploader** and the **MCP tools** read the token from that file
+automatically — the MCP via a `headersHelper` that runs at connect time — so
+there is nothing to export and nothing to copy. After logging in, run
+`/reload-plugins` (or restart Claude Code) to connect the MCP.
 
-```bash
-echo 'export DEPOT_TOKEN="dpt_…"' >> ~/.zshrc   # or ~/.bashrc
-```
-
-**Manual** — create a token yourself at `https://depot.ingram.tech/tokens` (shown
-once, at creation) and export it as above. `DEPOT_TOKEN` in the environment always
-overrides the saved credentials file.
+**Manual fallback** — create a token at `https://depot.ingram.tech/tokens` and set
+`export DEPOT_TOKEN="dpt_…"` in your shell. `DEPOT_TOKEN` in the environment always
+overrides the saved credentials file (and the MCP `headersHelper` honors it too).
 
 ## CLI usage
 
@@ -167,11 +166,11 @@ or add the local checkout as a marketplace:
 /plugin install depot@depot
 ```
 
-After install, set `DEPOT_TOKEN` in your shell profile (so the hook inherits it)
-and start a session. When a session ends, the `SessionEnd` hook runs
-`depot-upload --once` **in the background** — it never blocks you, and every
-failure is silent (logged to `~/.claude/depot/sync.log`). Run `/depot:depot-sync`
-any time to sync on demand and see the summary.
+After install, run `/depot:depot-login` once to connect (see *Getting connected*).
+Then, when a session ends, the `SessionEnd` hook runs `depot-upload --once` **in
+the background** — it never blocks you, and every failure is silent (logged to
+`~/.claude/depot/sync.log`). Run `/depot:depot-sync` any time to sync on demand
+and see the summary.
 
 ## State / cursor
 
