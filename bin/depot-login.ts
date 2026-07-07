@@ -95,7 +95,7 @@ async function main(): Promise<void> {
 			}
 			res.writeHead(200, { "content-type": "text/html" }).end(
 				"<!doctype html><meta charset=utf-8><title>depot</title>" +
-					"<body style=\"font-family:system-ui;background:#16140f;color:#e8e2d4;" +
+					'<body style="font-family:system-ui;background:#16140f;color:#e8e2d4;' +
 					'display:grid;place-items:center;height:100vh;margin:0">' +
 					"<p>✓ Connected. You can close this tab and return to your terminal.</p>",
 			);
