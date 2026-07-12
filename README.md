@@ -14,6 +14,12 @@ It is three things in one directory:
 - **Depot's MCP server**, so the loop closes: your transcripts flow *out* to
   Depot, and Depot's distilled memory flows *back in* as tools your agent calls
   before it works. Bundled via `.mcp.json` — installing the plugin wires it up.
+- **The push channel** — memory the agent doesn't have to ask for. A
+  `SessionStart` hook injects the project's cited brief into every session that
+  starts inside a repo Depot knows, and a `PreToolUse` hook injects a file's
+  failure dossier the first time the agent is about to edit a file with recorded
+  friction. Pull (the MCP tools) answers when the agent asks; push means it
+  never had to know there was something to ask.
 
 ## Agent tools (MCP)
 
@@ -41,6 +47,25 @@ To use the server without the plugin, add it directly:
 claude mcp add --transport http depot https://depot.ingram.tech/api/mcp \
   --header "Authorization: Bearer dpt_…"
 ```
+
+## The push channel (unprompted context)
+
+Both hooks enter through `bin/depot-context.ts` and call
+`GET /api/v1/context?remote=…` with the saved token — the repo is identified by
+its `origin` git remote, the same identity ingest uses, so the context you get
+back is for exactly the project this session's transcript will land in.
+
+- **SessionStart** injects the project brief (state of mind, load-bearing
+  memories, friction hotspots) as `additionalContext`, and caches the server's
+  hot-file list under `~/.claude/depot/context/`.
+- **PreToolUse** (`Edit|Write|NotebookEdit`) checks the file about to be edited
+  against that cached list — an ordinary edit costs **zero network calls** — and
+  only for a known-hot file fetches its dossier (what failed here, what fixed
+  it) and injects it, once per file per session.
+
+Same contract as everything else in this plugin: every failure — no token,
+offline, repo unknown to Depot, timeout — is silent and costs nothing. With no
+token the hooks are inert.
 
 ## What is and isn't sent (privacy)
 
@@ -186,6 +211,9 @@ State lives in `~/.claude/depot/` (or `$XDG_STATE_HOME/depot`):
   appending) is left un-cursored until it's complete.
 - `machine.json` — the random per-install UUID behind the machine fingerprint.
 - `sync.log` — rotating log from the auto-sync hook.
+- `context/` — the push channel's cache: per-project hot-file lists (refreshed
+  each SessionStart, 12 h TTL) and per-session injected-file sets (pruned after
+  7 days). Safe to delete; it only ever costs a refetch.
 
 Deleting `state.json` makes the next run re-upload everything (still idempotent —
 the server dedups by record uuid).
@@ -198,10 +226,12 @@ claude-plugin-depot/
 │   ├── plugin.json        # plugin manifest
 │   └── marketplace.json   # single-plugin marketplace descriptor
 ├── bin/depot-upload.ts    # CLI entrypoint
-├── src/                   # config, identity, state, scan, upload, run
+├── bin/depot-context.ts   # push-channel hook entry (SessionStart/PreToolUse)
+├── src/                   # config, identity, state, scan, upload, run, context
 ├── hooks/
-│   ├── hooks.json         # SessionEnd → depot-sync.sh (async)
-│   └── depot-sync.sh      # background, silent, non-fatal sync
+│   ├── hooks.json         # SessionEnd → sync; SessionStart/PreToolUse → context
+│   ├── depot-sync.sh      # background, silent, non-fatal sync
+│   └── depot-context.sh   # foreground (returns context), silent, non-fatal
 ├── commands/depot-sync.md # /depot:depot-sync slash command
 └── package.json
 ```
