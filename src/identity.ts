@@ -10,7 +10,7 @@
  * `DEPOT_ACCOUNT_ID`, then the OS username.
  */
 
-import crypto from "node:crypto";
+import { createHash } from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -59,6 +59,8 @@ export function resolveMachine(stateDir: string): Machine {
 	}
 
 	if (!installId) {
+		// Local-only entropy: never stored as an id, only salt for the hash below.
+		// oxlint-disable-next-line nextkit/no-crypto-random-uuid -- not an id
 		installId = crypto.randomUUID();
 		try {
 			fs.mkdirSync(stateDir, { recursive: true });
@@ -80,8 +82,7 @@ export function resolveMachine(stateDir: string): Machine {
 		hostname = undefined;
 	}
 
-	const fingerprint = crypto
-		.createHash("sha256")
+	const fingerprint = createHash("sha256")
 		.update(`${installId}|${hostname ?? ""}`)
 		.digest("hex");
 
