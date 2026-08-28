@@ -1,6 +1,6 @@
 {
 	"name": "depot-upload",
-	"version": "1.0.0",
+	"version": "2.0.0",
 	"private": true,
 	"description": "Claude Code plugin + CLI that uploads transcript records to Depot, incrementally and idempotently.",
 	"type": "module",

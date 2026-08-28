@@ -51,9 +51,9 @@ claude mcp add --transport http depot https://depot.ingram.tech/api/mcp \
 ## The push channel (unprompted context)
 
 Both hooks enter through `bin/depot-context.ts` and call
-`GET /api/v1/context?remote=…` with the saved token — the repo is identified by
-its `origin` git remote, the same identity ingest uses, so the context you get
-back is for exactly the project this session's transcript will land in.
+`GET /api/v1/context?remote=…` with the saved token — a repo is identified by
+its `origin` git remote, the same routing key ingest uses, so the context you
+get back is for exactly the project this session's transcript will land in.
 
 - **SessionStart** injects the project brief (state of mind, load-bearing
   memories, friction hotspots) as `additionalContext`, and caches the server's
@@ -61,7 +61,10 @@ back is for exactly the project this session's transcript will land in.
 - **PreToolUse** (`Edit|Write|NotebookEdit`) checks the file about to be edited
   against that cached list — an ordinary edit costs **zero network calls** — and
   only for a known-hot file fetches its dossier (what failed here, what fixed
-  it) and injects it, once per file per session.
+  it) and injects it, once per file per session. The list is keyed by the
+  **file's** repo, not the directory the session started in: a session that
+  edits across repos gets each repo's dossiers (an unseen repo's list is
+  fetched once, then cached like SessionStart's).
 
 Same contract as everything else in this plugin: every failure — no token,
 offline, repo unknown to Depot, timeout — is silent and costs nothing. With no
@@ -78,8 +81,15 @@ token the hooks are inert.
   your `hostname`, and `os` (`process.platform`).
 - Your **Claude account identifier** (account UUID and email, read from
   `~/.claude.json`), so uploads are attributed per person+machine.
-- Per file: the session id, the absolute project path, the git `origin` remote
-  URL and current branch (best effort), and a sha256 of the bytes uploaded.
+- Per file: the session id, the directory the session started in, the git
+  `origin` remote URL of **every directory the uploaded records sat in** (a
+  session that `cd`s between repos belongs to each of them), the current
+  branch (best effort), and a sha256 of the bytes uploaded.
+
+**Kept on this machine:** any record whose directory has no git `origin`
+remote. Depot only keeps memory for remote-backed repos; a private scratch
+folder — even one a session wandered into mid-way — never leaves the machine.
+The sync summary reports these as "kept private".
 
 **Never sent:** any tokens or secrets. The uploader does **not** read
 `~/.claude/.credentials.json` or any OAuth/API tokens. Only non-secret account

@@ -2,6 +2,13 @@
  * Scan `~/.claude/projects/**\/*.jsonl`, slice each file at its cursor, parse the
  * new lines, and assemble per-file upload batches. Git metadata is resolved best
  * effort and never fatal.
+ *
+ * A session is not one place: records carry their own `cwd`, and a session
+ * that `cd`s between repos belongs to each of them. So the git remote is
+ * resolved per DISTINCT cwd (not per file), shipped as `remotes` (cwd →
+ * origin), and — the privacy gate — records whose cwd has no remote are dropped
+ * here, one by one, before anything leaves the machine. A file none of whose
+ * cwds has a remote is skipped entirely.
  */
 
 import { execFileSync } from "node:child_process";
@@ -16,13 +23,17 @@ export type ScannedFile = {
 	filePath: string;
 	/** sessionId = filename without `.jsonl`. */
 	providerSessionId: string;
+	/** The session's starting directory (first record's cwd). */
 	projectPathAbs: string;
-	gitRemoteRaw?: string;
+	/** cwd → raw origin remote, for every directory the kept records sat in. */
+	remotes: Record<string, string>;
 	gitBranch?: string;
 	/** sha256 of the exact new bytes being sent for this file. */
 	sha256: string;
-	/** Parsed new records (malformed lines skipped). */
+	/** Parsed new records (malformed lines and remote-less cwds dropped). */
 	records: unknown[];
+	/** Records dropped because their cwd has no git remote (never uploaded). */
+	droppedRecords: number;
 	/** Byte offset to persist once the upload of `records` succeeds. */
 	newBytesUploaded: number;
 	/** Line count to persist once the upload succeeds. */
@@ -102,6 +113,54 @@ function pickProjectPath(records: unknown[], encodedDir: string): string {
 		}
 	}
 	return decodeProjectDir(encodedDir);
+}
+
+function recordCwd(rec: unknown): string | null {
+	if (typeof rec === "object" && rec !== null) {
+		const cwd = (rec as Record<string, unknown>).cwd;
+		if (typeof cwd === "string" && cwd.length > 0) {
+			return cwd;
+		}
+	}
+	return null;
+}
+
+/**
+ * Attribute each record to a directory (its own cwd, else the previous
+ * record's, else the file's starting directory), resolve each directory's
+ * origin remote once, and keep only the records whose directory has one.
+ * Exported for tests; pure given `remoteOf`.
+ */
+export function gateRecordsByRemote(
+	records: unknown[],
+	defaultCwd: string,
+	remoteOf: (cwd: string) => string | undefined,
+): { kept: unknown[]; remotes: Record<string, string>; dropped: number } {
+	const remotes: Record<string, string> = {};
+	const known = new Map<string, string | undefined>();
+	const kept: unknown[] = [];
+	let dropped = 0;
+	let lastCwd: string | null = null;
+	for (const rec of records) {
+		const own = recordCwd(rec);
+		if (own) {
+			lastCwd = own;
+		}
+		const cwd = lastCwd ?? defaultCwd;
+		if (!known.has(cwd)) {
+			const remote = remoteOf(cwd);
+			known.set(cwd, remote);
+			if (remote) {
+				remotes[cwd] = remote;
+			}
+		}
+		if (known.get(cwd)) {
+			kept.push(rec);
+		} else {
+			dropped += 1;
+		}
+	}
+	return { kept, remotes, dropped };
 }
 
 function pickBranch(records: unknown[]): string | undefined {
@@ -199,27 +258,32 @@ export function scan(opts: ScanOptions): ScannedFile[] {
 			continue;
 		}
 
-		const git = gitInfo(projectPathAbs);
-
-		// Privacy gate: Depot only keeps memory for git-remote-backed projects.
+		// Privacy gate: Depot only keeps memory for git-remote-backed directories.
 		// A directory with no `origin` remote may be a private scratch folder, so
-		// its transcripts must never leave this machine — skip it entirely. (The
-		// server enforces the same rule, but stopping here means the bytes are
-		// never even sent.)
-		if (!git.remote) {
+		// records that sat in one must never leave this machine — dropped here,
+		// per record, so a session that wandered into one still uploads the rest.
+		// (The server enforces the same rule, but stopping here means the bytes
+		// are never even sent.) A file with nothing left is skipped entirely.
+		const gated = gateRecordsByRemote(
+			records,
+			projectPathAbs,
+			(cwd) => gitInfo(cwd).remote,
+		);
+		if (gated.kept.length === 0) {
 			continue;
 		}
 
-		const branch = pickBranch(records) ?? git.branch;
+		const branch = pickBranch(gated.kept) ?? gitInfo(projectPathAbs).branch;
 
 		results.push({
 			filePath,
 			providerSessionId: path.basename(filePath, ".jsonl"),
 			projectPathAbs,
-			gitRemoteRaw: git.remote,
+			remotes: gated.remotes,
 			gitBranch: branch,
 			sha256,
-			records,
+			records: gated.kept,
+			droppedRecords: gated.dropped,
 			newBytesUploaded: safeStart + consumedBytes,
 			newLinesUploaded: (cursor?.linesUploaded ?? 0) + lineCount,
 			skippedLines,

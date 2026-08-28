@@ -8,7 +8,10 @@
  *  - PreToolUse (Edit/Write/NotebookEdit) — when the file about to be edited is
  *    on the cached hot list, fetch its dossier (what failed here, what fixed
  *    it) and inject it once per session per file. Ordinary edits — anything
- *    not on the list — cost ZERO network calls.
+ *    not on the list — cost ZERO network calls. The repo is the FILE's repo,
+ *    not the session's starting cwd: a session that edits across repos gets
+ *    each repo's dossiers, and an unseen repo's hot list is fetched once (then
+ *    cached like SessionStart's).
  *
  * Every failure is silent (no token, offline, unknown project, timeout): the
  * hook must never slow down or break a session. Depot missing entirely must
@@ -261,22 +264,34 @@ export async function runPreToolUse(input: HookInput, env: ContextEnv): Promise<
 	if (!cwd || !filePath || !sessionId) {
 		return;
 	}
-	const remote = originRemote(cwd);
+	// Key on the repo the FILE lives in — a session is not one place.
+	const fileAbs = path.resolve(cwd, filePath);
+	const fileDir = path.dirname(fileAbs);
+	const remote = originRemote(fileDir);
 	if (!remote) {
 		return;
 	}
-	// Gate on the SessionStart-cached hot list — never hit the network for a
-	// file Depot has no friction record of. No (fresh) cache → no injection;
-	// the next SessionStart repopulates it.
-	const cache = loadCache(env.stateDir, remote);
+	// Gate on the cached hot list — never hit the network for a file Depot has
+	// no friction record of. A repo this session hasn't seen yet (the file sits
+	// outside the starting repo) costs one fetch to learn its hot list, cached
+	// for the same TTL as SessionStart's; after that its edits are free too.
+	let cache = loadCache(env.stateDir, remote);
 	if (!cache) {
-		return;
+		const payload = await fetchContext(env.depotUrl, env.token, remote);
+		const fetchedAt = new Date().toISOString();
+		// Cache a miss as an empty payload so an unknown repo is asked once.
+		writeJson(cachePath(env.stateDir, remote), {
+			fetchedAt,
+			remote,
+			payload: payload ?? {},
+		});
+		cache = { fetchedAt, remote, payload: payload ?? {} };
 	}
-	const root = repoRoot(cwd);
+	const root = repoRoot(fileDir);
 	if (!root) {
 		return;
 	}
-	const rel = path.relative(root, path.resolve(cwd, filePath));
+	const rel = path.relative(root, fileAbs);
 	if (rel.startsWith("..") || path.isAbsolute(rel)) {
 		return;
 	}

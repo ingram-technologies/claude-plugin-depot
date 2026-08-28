@@ -279,7 +279,7 @@ export async function uploadFile(
 				{
 					providerSessionId: file.providerSessionId,
 					projectPathAbs: file.projectPathAbs,
-					...(file.gitRemoteRaw ? { gitRemoteRaw: file.gitRemoteRaw } : {}),
+					remotes: file.remotes,
 					...(file.gitBranch ? { gitBranch: file.gitBranch } : {}),
 					sha256: file.sha256,
 					records: chunk,

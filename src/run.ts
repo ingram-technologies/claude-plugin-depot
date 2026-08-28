@@ -18,6 +18,8 @@ export type RunSummary = {
 	inserted: number;
 	deduped: number;
 	skippedLines: number;
+	/** Records kept on this machine because their cwd has no git remote. */
+	droppedRecords: number;
 	dryRun: boolean;
 	errors: string[];
 };
@@ -44,6 +46,7 @@ export async function runOnce(
 		inserted: 0,
 		deduped: 0,
 		skippedLines: 0,
+		droppedRecords: 0,
 		dryRun: config.flags.dryRun,
 		errors: [],
 	};
@@ -56,6 +59,7 @@ export async function runOnce(
 
 	for (const file of files) {
 		summary.skippedLines += file.skippedLines;
+		summary.droppedRecords += file.droppedRecords;
 	}
 
 	if (config.flags.dryRun) {
@@ -145,6 +149,9 @@ export function formatSummary(summary: RunSummary): string {
 	}
 	if (summary.skippedLines > 0) {
 		parts.push(`${summary.skippedLines} malformed skipped`);
+	}
+	if (summary.droppedRecords > 0) {
+		parts.push(`${summary.droppedRecords} kept private (no git remote)`);
 	}
 	return parts.join(", ");
 }
