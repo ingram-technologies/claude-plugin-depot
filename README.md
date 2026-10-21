@@ -114,6 +114,7 @@ nothing.
 | `DEPOT_URL`          | no       | `https://depot.ingram.tech`  | Depot server base URL.                               |
 | `DEPOT_ACCOUNT_ID`   | no       | from `~/.claude.json`        | Override the account identifier.                     |
 | `DEPOT_PROJECTS_DIR` | no       | `~/.claude/projects`         | Where transcript JSONL files live.                   |
+| `DEPOT_REMOTES`      | no       | every remote                 | Comma-separated substrings of `origin` URLs to upload; other repos stay local. |
 | `DEPOT_WATCH_SECONDS`| no       | `60`                         | Poll interval for `--watch`.                         |
 | `XDG_STATE_HOME`     | no       | `~/.claude`                  | If set, state lives in `$XDG_STATE_HOME/depot`.      |
 
