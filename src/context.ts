@@ -23,6 +23,8 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
+import { allowedRemote } from "./config.ts";
+
 export type HookInput = {
 	hookEventName: string;
 	sessionId: string | null;
@@ -100,7 +102,7 @@ function git(cwd: string, args: string[]): string | null {
 }
 
 export function originRemote(cwd: string): string | null {
-	return git(cwd, ["remote", "get-url", "origin"]);
+	return allowedRemote(git(cwd, ["remote", "get-url", "origin"])) ?? null;
 }
 
 function repoRoot(cwd: string): string | null {

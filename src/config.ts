@@ -28,6 +28,22 @@ export type Config = {
 	flags: Flags;
 };
 
+/**
+ * `DEPOT_REMOTES`: comma-separated substrings; when set, only a remote URL
+ * containing one of them counts as remote-backed, so every other repo is kept
+ * on this machine exactly like a remote-less one. Unset means every remote.
+ */
+export function allowedRemote(remote: string | null | undefined): string | undefined {
+	const allow = (process.env.DEPOT_REMOTES ?? "")
+		.split(",")
+		.map((s) => s.trim())
+		.filter(Boolean);
+	if (!remote) {
+		return undefined;
+	}
+	return allow.length === 0 || allow.some((a) => remote.includes(a)) ? remote : undefined;
+}
+
 const DEFAULT_DEPOT_URL = "https://depot.ingram.tech";
 const DEFAULT_WATCH_SECONDS = 60;
 const MAX_RECORDS_PER_REQUEST = 1000;

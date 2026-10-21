@@ -16,6 +16,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
+import { allowedRemote } from "./config.ts";
 import type { FileCursor, StateFile } from "./state.ts";
 
 export type ScannedFile = {
@@ -267,7 +268,7 @@ export function scan(opts: ScanOptions): ScannedFile[] {
 		const gated = gateRecordsByRemote(
 			records,
 			projectPathAbs,
-			(cwd) => gitInfo(cwd).remote,
+			(cwd) => allowedRemote(gitInfo(cwd).remote),
 		);
 		if (gated.kept.length === 0) {
 			continue;
