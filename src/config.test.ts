@@ -1,9 +1,9 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { allowedRemote } from "./config.ts";
 
 describe("allowedRemote", () => {
-	afterEach(() => {
+	beforeEach(() => {
 		delete process.env.DEPOT_REMOTES;
 	});
 
